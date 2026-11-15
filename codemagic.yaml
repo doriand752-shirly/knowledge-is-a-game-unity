@@ -1,0 +1,60 @@
+# Codemagic fallback when GitHub Actions macOS is unavailable (billing).
+# App: Knowledge is a Game · bundle com.knowledgeisagame.kiagPlayer
+# Set group "asc" env vars in Codemagic UI (never commit): ASC_KEY_ID, ASC_ISSUER_ID,
+# ASC_KEY_P8 (PEM body), APPLE_TEAM_ID=2QKC854C2J, ASC_APP_ID=6835082408
+workflows:
+  ios-testflight:
+    name: KiAG iOS TestFlight
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - asc
+      vars:
+        KIAG_API: "http://85.17.145.134:2567"
+        BUNDLE_ID: "com.knowledgeisagame.kiagPlayer"
+    scripts:
+      - name: Write ASC key
+        script: |
+          set -euo pipefail
+          cd mobile
+          mkdir -p ios/asc
+          KEY_FILE="ios/asc/AuthKey_${ASC_KEY_ID}.p8"
+          printf '%s\n' "$ASC_KEY_P8" > "$KEY_FILE"
+          {
+            echo "ASC_KEY_ID=${ASC_KEY_ID}"
+            echo "ASC_ISSUER_ID=${ASC_ISSUER_ID}"
+            echo "ASC_KEY_PATH=$(pwd)/${KEY_FILE}"
+            echo "ASC_KEY_FILENAME=AuthKey_${ASC_KEY_ID}.p8"
+            echo "APPLE_TEAM_ID=${APPLE_TEAM_ID}"
+            echo "ASC_APP_ID=${ASC_APP_ID}"
+          } > ios/asc/.env.asc
+          echo "ASC_KEY_WRITTEN keyIdLen=${#ASC_KEY_ID}"
+      - name: Flutter pub get + pods
+        script: |
+          set -euo pipefail
+          cd mobile
+          flutter pub get
+          cd ios && pod install
+      - name: Fastlane ci_testflight
+        script: |
+          set -euo pipefail
+          cd mobile/ios
+          gem install bundler --no-document
+          bundle config set --local path 'vendor/bundle'
+          bundle install
+          export UPLOAD_TO_TESTFLIGHT=true
+          export CI=true
+          bundle exec fastlane ci_testflight
+    artifacts:
+      - mobile/build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - doriandood.pro@gmail.com
+        notify:
+          success: true
+          failure: true
