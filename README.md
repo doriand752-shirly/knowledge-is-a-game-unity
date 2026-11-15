@@ -40,9 +40,10 @@ flutter pub get
 flutter build apk --release --dart-define=KIAG_API=http://85.17.145.134:2567
 ```
 
-## Flutter iOS → TestFlight (GitHub Actions / Codemagic)
+## Flutter iOS → TestFlight (public GitHub Actions — free)
 
-Preferred: `.github/workflows/ios-testflight.yml` on `macos-latest` (This PC + `gh secret` / `gh workflow run`). Fallback: `codemagic.yaml`. Do not use Dimitri’s Mac.
+Repo is **public** so standard `macos-*` Actions minutes are free (same pattern as blind-box-closet).  
+Workflow: `.github/workflows/ios-testflight.yml` · fallback `codemagic.yaml`. Do **not** use Dimitri’s Mac.
 
 See `docs/unity-flutter-stack.md` and `mobile/scripts/README-ios-testflight.md`.
 
