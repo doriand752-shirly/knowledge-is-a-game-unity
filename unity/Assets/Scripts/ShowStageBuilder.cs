@@ -34,9 +34,14 @@ namespace Kiag
         public Button ModeDecades { get; private set; }
         public Button ModeRapide { get; private set; }
         public Toggle PowerPlaysToggle { get; private set; }
+        public GameObject ShowCanvas { get; private set; }
 
-        void Awake()
+        void Awake() => BuildNow();
+
+        /// <summary>Idempotent set build — safe from editor capture tools (Awake may not run in edit mode).</summary>
+        public void BuildNow()
         {
+            if (BroadcastCam != null) return;
             BuildLighting();
             BuildSet();
             BuildDoors();
@@ -46,29 +51,57 @@ namespace Kiag
             BuildCastRoot();
             BuildCameras();
             BuildUi();
-            ThrowVfxRoot = new GameObject("ThrowVfxRoot").transform;
-            ThrowVfxRoot.SetParent(transform, false);
+            if (ThrowVfxRoot == null)
+            {
+                ThrowVfxRoot = new GameObject("ThrowVfxRoot").transform;
+                ThrowVfxRoot.SetParent(transform, false);
+            }
         }
 
         void BuildLighting()
         {
+            // Soft studio GI — no pitch-black figurine shadows
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.55f, 0.65f, 0.9f);
-            RenderSettings.ambientEquatorColor = new Color(0.9f, 0.75f, 0.55f);
-            RenderSettings.ambientGroundColor = new Color(0.35f, 0.2f, 0.15f);
+            RenderSettings.ambientSkyColor = new Color(0.72f, 0.82f, 0.98f);
+            RenderSettings.ambientEquatorColor = new Color(0.98f, 0.88f, 0.72f);
+            RenderSettings.ambientGroundColor = new Color(0.55f, 0.42f, 0.32f);
+            RenderSettings.ambientIntensity = 1.15f;
+            RenderSettings.fog = true;
+            RenderSettings.fogColor = ClayPalette.BackdropSky * 0.85f;
+            RenderSettings.fogMode = FogMode.Linear;
+            RenderSettings.fogStartDistance = 11f;
+            RenderSettings.fogEndDistance = 28f;
 
-            var key = NewLight("KeyLight", LightType.Spot, ClayPalette.ClayWhite, 2.2f, 45f);
-            key.transform.position = new Vector3(0, 8, -4);
-            key.transform.rotation = Quaternion.Euler(50, 0, 0);
+            var key = NewLight("KeyLight", LightType.Spot, ClayPalette.ClayWhite, 2.4f, 55f);
+            key.transform.position = new Vector3(-1.2f, 8.5f, -4.2f);
+            key.transform.rotation = Quaternion.Euler(48, 12, 0);
+            key.shadows = LightShadows.Soft;
+            key.shadowStrength = 0.45f;
 
-            var fill = NewLight("FillLight", LightType.Point, ClayPalette.NeonCyan, 1.4f, 0);
-            fill.transform.position = new Vector3(-5, 4, 2);
+            var fill = NewLight("FillLight", LightType.Point, new Color(0.85f, 0.92f, 1f), 1.5f, 0);
+            fill.transform.position = new Vector3(-5.2f, 3.8f, 0.5f);
+            fill.range = 16f;
 
-            var rim = NewLight("RimLight", LightType.Point, ClayPalette.NeonMagenta, 1.6f, 0);
-            rim.transform.position = new Vector3(5, 5, 3);
+            // Strong rim / halo from behind (figurine separation)
+            var rim = NewLight("RimLight", LightType.Directional, new Color(1f, 0.92f, 0.98f), 1.35f, 0);
+            rim.transform.rotation = Quaternion.Euler(12, 168, 0);
+            rim.shadows = LightShadows.None;
 
-            var strobe = NewLight("Strobe", LightType.Point, ClayPalette.NeonLime, 0.8f, 0);
-            strobe.transform.position = new Vector3(0, 6, -1);
+            var rimKick = NewLight("RimKick", LightType.Spot, ClayPalette.NeonCyan, 2.4f, 50f);
+            rimKick.transform.position = new Vector3(3.8f, 4.8f, 4.5f);
+            rimKick.transform.rotation = Quaternion.Euler(25, -150, 0);
+            rimKick.range = 18f;
+
+            var deskKey = NewLight("DeskKey", LightType.Spot, ClayPalette.PyramidGold, 1.35f, 38f);
+            deskKey.transform.position = new Vector3(0, 5.2f, 3.2f);
+            deskKey.transform.rotation = Quaternion.Euler(55, 0, 0);
+
+            var bounce = NewLight("FloorBounce", LightType.Point, ClayPalette.FloorStripe, 0.85f, 0);
+            bounce.transform.position = new Vector3(0, 0.4f, 1.5f);
+            bounce.range = 10f;
+
+            var strobe = NewLight("Strobe", LightType.Point, ClayPalette.NeonLime, 0.55f, 0);
+            strobe.transform.position = new Vector3(0, 6.5f, -0.5f);
             strobe.gameObject.AddComponent<ClayStrobe>();
         }
 
@@ -87,28 +120,126 @@ namespace Kiag
 
         void BuildSet()
         {
+            BuildStylizedBackdrop();
+
             var floor = Prim("Floor", PrimitiveType.Cube, ClayPalette.StageFloor, new Vector3(0, -0.05f, 2), new Vector3(18, 0.1f, 14));
             floor.transform.SetParent(transform, false);
+            var fr = floor.GetComponent<Renderer>();
+            if (fr) fr.sharedMaterial = ClayPalette.MakeClayMat(ClayPalette.StageFloor, 0.22f);
+
+            // White / gold glitter stripes (figurine stage plate)
+            for (int i = -6; i <= 6; i++)
+            {
+                bool gold = (i & 1) == 0;
+                var stripe = Prim($"Stripe_{i}", PrimitiveType.Cube,
+                    gold ? ClayPalette.FloorGold : ClayPalette.FloorStripe,
+                    new Vector3(0, 0.02f, i * 0.95f), new Vector3(16f, 0.03f, 0.85f));
+                stripe.transform.SetParent(transform, false);
+                var sr = stripe.GetComponent<Renderer>();
+                if (sr) sr.sharedMaterial = gold
+                    ? ClayPalette.MakeGoldMat(ClayPalette.FloorGold, 0.68f)
+                    : ClayPalette.MakeClayMat(ClayPalette.FloorStripe, 0.18f);
+            }
 
             var wall = Prim("BackWall", PrimitiveType.Cube, ClayPalette.BackWall, new Vector3(0, 4, 8), new Vector3(18, 8, 0.3f));
             wall.transform.SetParent(transform, false);
 
-            var curtainL = Prim("CurtainL", PrimitiveType.Cube, ClayPalette.Curtain, new Vector3(-8.5f, 4, 4), new Vector3(1.2f, 8, 6));
-            curtainL.transform.SetParent(transform, false);
-            var curtainR = Prim("CurtainR", PrimitiveType.Cube, ClayPalette.Curtain, new Vector3(8.5f, 4, 4), new Vector3(1.2f, 8, 6));
-            curtainR.transform.SetParent(transform, false);
+            // Logo wall plaque
+            var logo = Prim("LogoWall", PrimitiveType.Cube, ClayPalette.Hex("#0F2740"), new Vector3(0, 5.6f, 7.75f), new Vector3(7.5f, 2.2f, 0.25f));
+            logo.transform.SetParent(transform, false);
+            var logoAccent = Prim("LogoAccent", PrimitiveType.Cube, ClayPalette.NeonMagenta, new Vector3(0, 4.35f, 7.7f), new Vector3(7.6f, 0.18f, 0.2f));
+            logoAccent.transform.SetParent(transform, false);
+            var brand = TextBillboard(logo.transform, "QuiZène", new Vector3(0, 0.15f, -0.2f));
+            if (brand != null) brand.fontSize = 8;
 
-            // Soft neon arches
-            for (int i = 0; i < 5; i++)
+            // Curtain folds (layered slabs)
+            for (int i = 0; i < 4; i++)
+            {
+                var cL = Prim($"CurtainL_{i}", PrimitiveType.Cube, Color.Lerp(ClayPalette.Curtain, Color.black, i * 0.08f),
+                    new Vector3(-8.2f - i * 0.15f, 4, 2 + i * 0.9f), new Vector3(1.05f, 8.2f, 1.1f));
+                cL.transform.SetParent(transform, false);
+                var cR = Prim($"CurtainR_{i}", PrimitiveType.Cube, Color.Lerp(ClayPalette.Curtain, Color.black, i * 0.08f),
+                    new Vector3(8.2f + i * 0.15f, 4, 2 + i * 0.9f), new Vector3(1.05f, 8.2f, 1.1f));
+                cR.transform.SetParent(transform, false);
+            }
+            var valance = Prim("Valance", PrimitiveType.Cube, ClayPalette.Hex("#9B1238"), new Vector3(0, 7.6f, 5.5f), new Vector3(17, 0.7f, 1.2f));
+            valance.transform.SetParent(transform, false);
+
+            // Neon arches (double row)
+            for (int i = 0; i < 7; i++)
             {
                 var c = i % 2 == 0 ? ClayPalette.NeonCyan : ClayPalette.NeonMagenta;
-                var bulb = Prim($"Neon_{i}", PrimitiveType.Sphere, c, new Vector3(-6 + i * 3f, 7.2f, 7.6f), Vector3.one * 0.45f);
+                var bulb = Prim($"Neon_{i}", PrimitiveType.Sphere, c, new Vector3(-7.5f + i * 2.5f, 7.35f, 7.55f), Vector3.one * 0.42f);
                 bulb.transform.SetParent(transform, false);
+                var arch = Prim($"Arch_{i}", PrimitiveType.Cylinder, c,
+                    new Vector3(-7.5f + i * 2.5f, 6.4f, 7.4f), new Vector3(0.18f, 0.55f, 0.18f));
+                arch.transform.SetParent(transform, false);
             }
 
-            // Desk / podium for Maxime
-            var desk = Prim("Desk", PrimitiveType.Cube, ClayPalette.Hex("#8B5A2B"), new Vector3(0, 0.6f, 6.2f), new Vector3(3.2f, 1.2f, 1.2f));
+            // Side benches / audience banks
+            for (int side = -1; side <= 1; side += 2)
+            {
+                for (int row = 0; row < 3; row++)
+                {
+                    var bench = Prim($"Bench_{side}_{row}", PrimitiveType.Cube, ClayPalette.Hex("#5C3A21"),
+                        new Vector3(side * (6.2f + row * 0.35f), 0.35f + row * 0.35f, -0.5f + row * 0.8f),
+                        new Vector3(1.4f, 0.35f, 4.5f));
+                    bench.transform.SetParent(transform, false);
+                }
+            }
+
+            // Proscenium pillars
+            var pillarL = Prim("PillarL", PrimitiveType.Cylinder, ClayPalette.Hex("#F4C430"), new Vector3(-7.2f, 3.2f, 7.2f), new Vector3(0.7f, 3.2f, 0.7f));
+            pillarL.transform.SetParent(transform, false);
+            var pillarR = Prim("PillarR", PrimitiveType.Cylinder, ClayPalette.Hex("#F4C430"), new Vector3(7.2f, 3.2f, 7.2f), new Vector3(0.7f, 3.2f, 0.7f));
+            pillarR.transform.SetParent(transform, false);
+
+            // Desk / podium for Maxime + props
+            var desk = Prim("Desk", PrimitiveType.Cube, ClayPalette.Hex("#8B5A2B"), new Vector3(0, 0.6f, 6.2f), new Vector3(3.4f, 1.2f, 1.3f));
             desk.transform.SetParent(transform, false);
+            var deskTop = Prim("DeskTop", PrimitiveType.Cube, ClayPalette.Hex("#A67C52"), new Vector3(0, 1.25f, 6.2f), new Vector3(3.6f, 0.12f, 1.45f));
+            deskTop.transform.SetParent(transform, false);
+            var micStand = Prim("MicStand", PrimitiveType.Cylinder, Color.black, new Vector3(1.1f, 1.7f, 5.7f), new Vector3(0.06f, 0.55f, 0.06f));
+            micStand.transform.SetParent(transform, false);
+            var cardStack = Prim("CardStack", PrimitiveType.Cube, ClayPalette.ClayWhite, new Vector3(-0.9f, 1.4f, 6.0f), new Vector3(0.55f, 0.12f, 0.4f));
+            cardStack.transform.SetParent(transform, false);
+        }
+
+        void BuildStylizedBackdrop()
+        {
+            // Soft sky wash + cooler far band (DOF will blur these cutouts)
+            var sky = Prim("SkyBackdrop", PrimitiveType.Cube, ClayPalette.BackdropSky, new Vector3(0, 5.5f, 13.5f), new Vector3(32, 18, 0.2f));
+            sky.transform.SetParent(transform, false);
+            var skyR = sky.GetComponent<Renderer>();
+            if (skyR) skyR.sharedMaterial = ClayPalette.MakeBackdropMat(ClayPalette.BackdropSky);
+
+            var far = Prim("FarHills", PrimitiveType.Cube, ClayPalette.BackdropFar, new Vector3(0, 1.4f, 12.6f), new Vector3(30, 3.6f, 0.3f));
+            far.transform.SetParent(transform, false);
+            var farR = far.GetComponent<Renderer>();
+            if (farR) farR.sharedMaterial = ClayPalette.MakeBackdropMat(ClayPalette.BackdropFar);
+
+            // Castle / mountain silhouettes — original flat cutouts (not IP copies)
+            float[] xs = { -9f, -5.5f, -2f, 2.2f, 5.8f, 9.2f };
+            float[] hs = { 3.2f, 4.6f, 2.8f, 5.1f, 3.6f, 4.2f };
+            for (int i = 0; i < xs.Length; i++)
+            {
+                var tower = Prim($"Cutout_{i}", PrimitiveType.Cube, ClayPalette.BackdropCutout,
+                    new Vector3(xs[i], hs[i] * 0.5f + 0.3f, 12.1f - (i % 2) * 0.35f),
+                    new Vector3(1.6f + (i % 3) * 0.35f, hs[i], 0.35f));
+                tower.transform.SetParent(transform, false);
+                var tr = tower.GetComponent<Renderer>();
+                if (tr) tr.sharedMaterial = ClayPalette.MakeBackdropMat(
+                    Color.Lerp(ClayPalette.BackdropCutout, ClayPalette.BackdropFar, (i % 3) * 0.15f));
+
+                if (i % 2 == 0)
+                {
+                    var spire = Prim($"Spire_{i}", PrimitiveType.Cube, ClayPalette.BackdropCutout,
+                        new Vector3(xs[i], hs[i] + 0.9f, 12.05f), new Vector3(0.55f, 1.4f, 0.3f));
+                    spire.transform.SetParent(transform, false);
+                    var sr = spire.GetComponent<Renderer>();
+                    if (sr) sr.sharedMaterial = ClayPalette.MakeBackdropMat(ClayPalette.BackdropCutout);
+                }
+            }
         }
 
         void BuildDoors()
@@ -163,15 +294,37 @@ namespace Kiag
             MaximeRoot.SetParent(transform, false);
             MaximeRoot.position = new Vector3(0, 0, 5.5f);
 
-            var body = Prim("Body", PrimitiveType.Capsule, ClayPalette.MaximeSuit, new Vector3(0, 1.3f, 0), new Vector3(0.9f, 1.1f, 0.7f));
+            var body = Prim("Body", PrimitiveType.Capsule, ClayPalette.MaximeSuit, new Vector3(0, 1.3f, 0), new Vector3(0.95f, 1.15f, 0.75f));
             body.transform.SetParent(MaximeRoot, false);
-            var head = Prim("Head", PrimitiveType.Sphere, ClayPalette.MaximeSkin, new Vector3(0, 2.55f, 0), Vector3.one * 0.85f);
+            var lapel = Prim("Lapel", PrimitiveType.Cube, ClayPalette.Hex("#1B4332"), new Vector3(0, 1.55f, -0.32f), new Vector3(0.55f, 0.7f, 0.12f));
+            lapel.transform.SetParent(MaximeRoot, false);
+            var bow = Prim("BowTie", PrimitiveType.Cube, ClayPalette.NeonMagenta, new Vector3(0, 1.95f, -0.38f), new Vector3(0.35f, 0.12f, 0.12f));
+            bow.transform.SetParent(MaximeRoot, false);
+            var head = Prim("Head", PrimitiveType.Sphere, ClayPalette.MaximeSkin, new Vector3(0, 2.6f, 0), Vector3.one * 0.88f);
             head.transform.SetParent(MaximeRoot, false);
-            var mic = Prim("Mic", PrimitiveType.Cylinder, Color.black, new Vector3(0.55f, 1.7f, -0.35f), new Vector3(0.08f, 0.45f, 0.08f));
+            var headR = head.GetComponent<Renderer>();
+            if (headR) headR.sharedMaterial = ClayPalette.MakeSkinMat(ClayPalette.MaximeSkin);
+            var nose = Prim("Nose", PrimitiveType.Sphere, Color.Lerp(ClayPalette.MaximeSkin, Color.red, 0.15f), new Vector3(0, 2.55f, -0.4f), Vector3.one * 0.18f);
+            nose.transform.SetParent(MaximeRoot, false);
+            var noseR = nose.GetComponent<Renderer>();
+            if (noseR) noseR.sharedMaterial = ClayPalette.MakeSkinMat(Color.Lerp(ClayPalette.MaximeSkin, Color.red, 0.12f));
+            var eyeL = Prim("EyeL", PrimitiveType.Sphere, Color.white, new Vector3(-0.2f, 2.7f, -0.35f), Vector3.one * 0.14f);
+            eyeL.transform.SetParent(MaximeRoot, false);
+            var eyeR = Prim("EyeR", PrimitiveType.Sphere, Color.white, new Vector3(0.2f, 2.7f, -0.35f), Vector3.one * 0.14f);
+            eyeR.transform.SetParent(MaximeRoot, false);
+            var pupilL = Prim("PupilL", PrimitiveType.Sphere, Color.black, new Vector3(-0.2f, 2.7f, -0.42f), Vector3.one * 0.06f);
+            pupilL.transform.SetParent(MaximeRoot, false);
+            var pupilR = Prim("PupilR", PrimitiveType.Sphere, Color.black, new Vector3(0.2f, 2.7f, -0.42f), Vector3.one * 0.06f);
+            pupilR.transform.SetParent(MaximeRoot, false);
+            var mic = Prim("Mic", PrimitiveType.Cylinder, Color.black, new Vector3(0.55f, 1.75f, -0.4f), new Vector3(0.08f, 0.45f, 0.08f));
             mic.transform.SetParent(MaximeRoot, false);
             mic.transform.rotation = Quaternion.Euler(0, 0, 25);
-            var hair = Prim("Hair", PrimitiveType.Sphere, ClayPalette.Hex("#3D2B1F"), new Vector3(0, 2.85f, 0.05f), new Vector3(0.9f, 0.45f, 0.9f));
+            var hair = Prim("Hair", PrimitiveType.Sphere, ClayPalette.Hex("#3D2B1F"), new Vector3(0, 2.95f, 0.05f), new Vector3(0.95f, 0.48f, 0.95f));
             hair.transform.SetParent(MaximeRoot, false);
+            var armL = Prim("ArmL", PrimitiveType.Capsule, ClayPalette.MaximeSuit, new Vector3(-0.65f, 1.35f, 0), new Vector3(0.28f, 0.55f, 0.28f));
+            armL.transform.SetParent(MaximeRoot, false);
+            var armR = Prim("ArmR", PrimitiveType.Capsule, ClayPalette.MaximeSuit, new Vector3(0.65f, 1.35f, 0), new Vector3(0.28f, 0.55f, 0.28f));
+            armR.transform.SetParent(MaximeRoot, false);
             MaximeRoot.gameObject.AddComponent<MaximeHost>();
         }
 
@@ -198,50 +351,84 @@ namespace Kiag
         {
             CastRoot = new GameObject("CastRoot").transform;
             CastRoot.SetParent(transform, false);
-            CastRoot.position = new Vector3(0, 0, -1.5f);
+            CastRoot.position = new Vector3(0, 0, 0.4f);
+            // Demo figurine lineup so the TV plate isn't empty before phones join.
+            string[] names = { "Alex", "Sam", "Lou", "Max" };
+            for (int i = 0; i < 4; i++)
+            {
+                var go = new GameObject("DemoCast_" + i);
+                go.transform.SetParent(CastRoot, false);
+                go.transform.localPosition = new Vector3(-3.6f + i * 2.4f, 0, 0);
+                var view = go.AddComponent<CastAvatarView>();
+                view.Setup(new PlayerSnap
+                {
+                    sessionId = "demo-" + i,
+                    name = names[i],
+                    score = (i + 1) * 120,
+                    characterId = ClayPalette.CastIds[i % ClayPalette.CastIds.Length],
+                    color = "",
+                    anim = "idle",
+                    selfieDataUrl = "",
+                });
+            }
         }
 
         void BuildCameras()
         {
-            BroadcastCam = MakeCam("CamBroadcast", new Vector3(0, 5.5f, -9), Quaternion.Euler(18, 0, 0), true);
-            DoorCam = MakeCam("CamDoors", new Vector3(0, 3.2f, 1.5f), Quaternion.Euler(8, 0, 0), false);
-            PadCam = MakeCam("CamPads", new Vector3(0, 4.5f, -5), Quaternion.Euler(28, 0, 0), false);
-            PyramidCam = MakeCam("CamPyramid", new Vector3(0, 3.5f, -2), Quaternion.Euler(12, 0, 0), false);
+            // Wide TV plate: far enough that ±3.6 cast lineup + badges + Maxime are fully inside 16:9.
+            BroadcastCam = MakeCam("CamBroadcast", new Vector3(0, 2.25f, -8.4f), true, new Vector3(0, 1.4f, 1.8f), focus: 8.5f);
+            DoorCam = MakeCam("CamDoors", new Vector3(0, 2.35f, 1.6f), false, new Vector3(0, 1.9f, 5.5f), focus: 4.4f);
+            PadCam = MakeCam("CamPads", new Vector3(0, 2.1f, -6.0f), false, new Vector3(0, 1.35f, 0.9f), focus: 6.2f);
+            PyramidCam = MakeCam("CamPyramid", new Vector3(0, 2.4f, -1.4f), false, new Vector3(0, 1.9f, 4.0f), focus: 5.2f);
             gameObject.AddComponent<CameraDirector>().Bind(BroadcastCam, DoorCam, PadCam, PyramidCam);
         }
 
-        Camera MakeCam(string name, Vector3 pos, Quaternion rot, bool enabled)
+        Camera MakeCam(string name, Vector3 pos, bool enabled, Vector3 lookAt, float focus)
         {
             var go = new GameObject(name);
             go.transform.SetParent(transform, false);
             go.transform.position = pos;
-            go.transform.rotation = rot;
+            go.transform.LookAt(lookAt);
             var cam = go.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = ClayPalette.Hex("#0D1B2A");
-            cam.fieldOfView = 50;
+            cam.backgroundColor = ClayPalette.BackdropSky * 0.55f;
+            cam.fieldOfView = 52; // 16:9 plate — keep all 4 side cast inside frame
+            cam.allowHDR = true;
             cam.enabled = enabled;
+            // Tag for Camera.main / plate capture
+            if (enabled) go.tag = "MainCamera";
             go.AddComponent<AudioListener>().enabled = enabled;
+            var fx = go.AddComponent<ClayPostFx>();
+            fx.SetFocus(focus, 4.8f);
+            fx.bloomIntensity = 0.36f;
+            fx.bloomThreshold = 0.58f;
             return cam;
+        }
+
+        /// <summary>Hide overlay chrome for clean TV / screenshot plate.</summary>
+        public void SetOverlayVisible(bool visible)
+        {
+            if (ShowCanvas) ShowCanvas.SetActive(visible);
         }
 
         void BuildUi()
         {
             var canvasGo = new GameObject("ShowCanvas");
             canvasGo.transform.SetParent(transform, false);
+            ShowCanvas = canvasGo;
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvasGo.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvasGo.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
             canvasGo.AddComponent<GraphicRaycaster>();
 
-            BrandText = UiText(canvasGo.transform, "Brand", KiagConfig.Brand, 28, TextAnchor.UpperLeft, new Vector2(24, -18));
-            RoomCodeText = UiText(canvasGo.transform, "Room", "Salle —", 36, TextAnchor.UpperRight, new Vector2(-24, -18));
-            PhaseText = UiText(canvasGo.transform, "Phase", "lobby", 22, TextAnchor.UpperCenter, new Vector2(0, -18));
-            TimerText = UiText(canvasGo.transform, "Timer", "", 48, TextAnchor.UpperCenter, new Vector2(0, -56));
-            HostLineText = UiText(canvasGo.transform, "HostLine", "Bienvenue sur le plateau !", 26, TextAnchor.LowerCenter, new Vector2(0, 96));
-            QuestionText = UiText(canvasGo.transform, "Question", "", 30, TextAnchor.LowerCenter, new Vector2(0, 48));
-            RevealText = UiText(canvasGo.transform, "Reveal", "", 28, TextAnchor.MiddleCenter, new Vector2(0, 120));
+            BrandText = UiText(canvasGo.transform, "Brand", KiagConfig.Brand, 22, TextAnchor.UpperLeft, new Vector2(16, -12));
+            RoomCodeText = UiText(canvasGo.transform, "Room", "Salle —", 26, TextAnchor.UpperRight, new Vector2(-16, -12));
+            PhaseText = UiText(canvasGo.transform, "Phase", "lobby", 18, TextAnchor.UpperCenter, new Vector2(0, -12));
+            TimerText = UiText(canvasGo.transform, "Timer", "", 40, TextAnchor.UpperCenter, new Vector2(0, -44));
+            HostLineText = UiText(canvasGo.transform, "HostLine", "Bienvenue sur le plateau !", 22, TextAnchor.LowerCenter, new Vector2(0, 28));
+            QuestionText = UiText(canvasGo.transform, "Question", "", 26, TextAnchor.LowerCenter, new Vector2(0, 56));
+            RevealText = UiText(canvasGo.transform, "Reveal", "", 24, TextAnchor.MiddleCenter, new Vector2(0, 100));
 
             var panel = new GameObject("LobbyPanel");
             panel.transform.SetParent(canvasGo.transform, false);
@@ -249,8 +436,8 @@ namespace Kiag
             prt.anchorMin = new Vector2(0, 0);
             prt.anchorMax = new Vector2(0, 0);
             prt.pivot = new Vector2(0, 0);
-            prt.anchoredPosition = new Vector2(24, 24);
-            prt.sizeDelta = new Vector2(420, 160);
+            prt.anchoredPosition = new Vector2(12, 12);
+            prt.sizeDelta = new Vector2(360, 120);
 
             ModeClassique = UiButton(panel.transform, "Classique", new Vector2(0, 110));
             ModeDecades = UiButton(panel.transform, "Décades", new Vector2(140, 110));

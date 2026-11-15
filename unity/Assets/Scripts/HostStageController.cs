@@ -267,6 +267,22 @@ namespace Kiag
         void UpdateCast(MatchSnapshot snap)
         {
             if (castRoot == null || snap.players == null) return;
+            // Drop procedural demo lineup once a real phone player appears.
+            bool hasHuman = false;
+            foreach (var p in snap.players)
+            {
+                if (!p.isHost) { hasHuman = true; break; }
+            }
+            if (hasHuman)
+            {
+                for (int i = castRoot.childCount - 1; i >= 0; i--)
+                {
+                    var child = castRoot.GetChild(i);
+                    if (child && child.name.StartsWith("DemoCast_"))
+                        Destroy(child.gameObject);
+                }
+            }
+
             var alive = new HashSet<string>();
             int slot = 0;
             foreach (var p in snap.players)
@@ -277,7 +293,7 @@ namespace Kiag
                 {
                     var go = new GameObject("Cast_" + p.name);
                     go.transform.SetParent(castRoot, false);
-                    go.transform.localPosition = new Vector3(-3f + slot * 1.5f, 0, 0);
+                    go.transform.localPosition = new Vector3(-3.6f + slot * 2.4f, 0, 0);
                     view = go.AddComponent<CastAvatarView>();
                     view.Setup(p);
                     _avatars[p.sessionId] = view;

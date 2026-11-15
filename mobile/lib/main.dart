@@ -7,6 +7,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'cast_data.dart';
+import 'challenges/chain_drag.dart';
+import 'challenges/fill_drag.dart';
+import 'challenges/hazard_overlays.dart';
+import 'challenges/linking_pairs.dart';
+import 'challenges/sorting_swipe.dart';
+import 'challenges/spin_wheel.dart';
 import 'colyseus_native.dart';
 import 'config.dart';
 
@@ -173,11 +179,6 @@ class _GamePageState extends State<GamePage> {
   String? characterId;
   String? selfieDataUrl;
   String? targetId;
-  final linkMap = <String, String>{};
-  final chainAnswers = <String>[];
-  final fillAnswers = <String, String>{};
-  int spinIdx = 0;
-  int gloopWipes = 0;
   int locksLeft = 3;
   double zipOpen = 0;
   StreamSubscription? _snapSub;
@@ -314,19 +315,13 @@ class _GamePageState extends State<GamePage> {
               ..._phaseBody(hazard),
             ],
           ),
-          if (hazard == 'gloop' && gloopWipes < 12)
+          if (hazard == 'gloop')
             Positioned.fill(
-              child: GestureDetector(
-                onPanUpdate: (_) {
-                  setState(() => gloopWipes++);
-                  if (gloopWipes >= 12) widget.room.send('clear_hazard');
-                },
-                child: Container(
-                  color: const Color(0xCC1FA6A0),
-                  alignment: Alignment.center,
-                  child: const Text('GLOOP ! Essuie…', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-                ),
-              ),
+              child: HazardOverlays.gloop(onCleared: () => widget.room.send('clear_hazard')),
+            ),
+          if (hazard == 'bombles')
+            Positioned.fill(
+              child: HazardOverlays.bombles(onCleared: () => widget.room.send('clear_hazard')),
             ),
           if (hazard == 'disco_inferno')
             IgnorePointer(
@@ -446,8 +441,19 @@ class _GamePageState extends State<GamePage> {
         final list = qChoices.isNotEmpty ? qChoices : choices;
         if (hazard == 'freeze' || me?['frozen'] == true) {
           return [
-            const Text('Freeze !'),
-            FilledButton(onPressed: () => widget.room.send('clear_hazard'), child: const Text('Casser la glace')),
+            const Text('Freeze ! Tape pour fissurer la glace.', style: TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 280,
+              child: Stack(
+                children: [
+                  HazardOverlays.freeze(onCleared: () {
+                    widget.room.send('clear_hazard');
+                    setState(() {});
+                  }),
+                ],
+              ),
+            ),
           ];
         }
         if (hazard == 'lockdown' && locksLeft > 0) {
@@ -533,91 +539,64 @@ class _GamePageState extends State<GamePage> {
     final lefts = (ch['lefts'] as List?)?.map((e) => e.toString()).toList() ?? [];
     final rights = (ch['rights'] as List?)?.map((e) => e.toString()).toList() ?? [];
     return [
-      Text('${ch['title'] ?? 'Linking'}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-      ...lefts.map((L) {
-        return Row(
-          children: [
-            Expanded(child: Text(L, style: const TextStyle(fontWeight: FontWeight.w700))),
-            DropdownButton<String>(
-              value: linkMap[L],
-              hint: const Text('→'),
-              items: rights.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
-              onChanged: (v) => setState(() => linkMap[L] = v ?? ''),
-            ),
-          ],
-        );
-      }),
-      FilledButton(
-        onPressed: () {
-          final links = lefts.where((L) => (linkMap[L] ?? '').isNotEmpty).map((L) => {'left': L, 'right': linkMap[L]}).toList();
-          widget.room.send('linking_submit', {'links': links});
-        },
-        child: const Text('Valider'),
+      LinkingPairsChallenge(
+        title: '${ch['title'] ?? 'Linking'}',
+        lefts: lefts,
+        rights: rights,
+        onSubmit: (links) => widget.room.send('linking_submit', {'links': links}),
       ),
     ];
   }
 
   List<Widget> _sortingBody() {
     final ch = KiagRoom.asMap(jsonDecode(snap?['challengeJson'] ?? '{}')) ?? {};
-    final items = (ch['items'] as List?)?.whereType<Map>().toList() ?? [];
+    final items = (ch['items'] as List?)
+            ?.whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList() ??
+        [];
     return [
-      Text('${ch['title'] ?? 'Sorting'}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-      Text('← ${ch['leftLabel']} · ${ch['rightLabel']} →'),
-      ...items.map((it) {
-        final id = it['id']?.toString() ?? '';
-        return Row(
-          children: [
-            IconButton(onPressed: () => widget.room.send('sorting_submit', {'itemId': id, 'side': 'L'}), icon: const Icon(Icons.arrow_back)),
-            Expanded(child: Text('${it['label']}', textAlign: TextAlign.center)),
-            IconButton(onPressed: () => widget.room.send('sorting_submit', {'itemId': id, 'side': 'R'}), icon: const Icon(Icons.arrow_forward)),
-          ],
-        );
-      }),
+      SortingSwipeChallenge(
+        title: '${ch['title'] ?? 'Sorting'}',
+        leftLabel: '${ch['leftLabel'] ?? 'Gauche'}',
+        rightLabel: '${ch['rightLabel'] ?? 'Droite'}',
+        items: items,
+        onSubmit: (itemId, side) => widget.room.send('sorting_submit', {'itemId': itemId, 'side': side}),
+      ),
     ];
   }
 
   List<Widget> _chainBody() {
     final ch = KiagRoom.asMap(jsonDecode(snap?['challengeJson'] ?? '{}')) ?? {};
-    final steps = (ch['steps'] as List?)?.whereType<Map>().toList() ?? [];
+    final steps = (ch['steps'] as List?)
+            ?.whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList() ??
+        [];
     final choices = (ch['choices'] as List?)?.map((e) => e.toString()).toList() ?? [];
-    while (chainAnswers.length < steps.length) {
-      chainAnswers.add('');
-    }
     return [
-      Text('${ch['title'] ?? 'Chain'} — départ ${ch['start']}', style: const TextStyle(fontWeight: FontWeight.w900)),
-      ...List.generate(steps.length, (i) {
-        return DropdownButtonFormField<String>(
-          value: chainAnswers[i].isEmpty ? null : chainAnswers[i],
-          decoration: InputDecoration(labelText: steps[i]['prompt']?.toString() ?? 'Étape ${i + 1}'),
-          items: choices.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-          onChanged: (v) => setState(() => chainAnswers[i] = v ?? ''),
-        );
-      }),
-      FilledButton(
-        onPressed: () => widget.room.send('chain_submit', {'answers': chainAnswers}),
-        child: const Text('Valider la chaîne'),
+      ChainDragChallenge(
+        title: '${ch['title'] ?? 'Chain'}',
+        start: '${ch['start'] ?? ''}',
+        steps: steps,
+        choices: choices,
+        onSubmit: (answers) => widget.room.send('chain_submit', {'answers': answers}),
       ),
     ];
   }
 
   List<Widget> _fillBody() {
     final ch = KiagRoom.asMap(jsonDecode(snap?['challengeJson'] ?? '{}')) ?? {};
-    final blanks = (ch['blanks'] as List?)?.whereType<Map>().toList() ?? [];
+    final blanks = (ch['blanks'] as List?)
+            ?.whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList() ??
+        [];
     return [
-      Text('${ch['sentence'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w800)),
-      ...blanks.map((b) {
-        final id = b['id']?.toString() ?? '';
-        final opts = (b['options'] as List?)?.map((e) => e.toString()).toList() ?? [];
-        return DropdownButtonFormField<String>(
-          value: fillAnswers[id],
-          decoration: InputDecoration(labelText: 'Trou $id'),
-          items: opts.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
-          onChanged: (v) => setState(() => fillAnswers[id] = v ?? ''),
-        );
-      }),
-      FilledButton(
-        onPressed: () => widget.room.send('fill_blanks_submit', {'answers': fillAnswers}),
-        child: const Text('Valider'),
+      FillDragChallenge(
+        sentence: '${ch['sentence'] ?? ''}',
+        blanks: blanks,
+        onSubmit: (answers) => widget.room.send('fill_blanks_submit', {'answers': answers}),
       ),
     ];
   }
@@ -643,28 +622,11 @@ class _GamePageState extends State<GamePage> {
   List<Widget> _spinBody() {
     final ch = KiagRoom.asMap(jsonDecode(snap?['challengeJson'] ?? '{}')) ?? {};
     final options = (ch['options'] as List?)?.map((e) => e.toString()).toList() ?? [];
-    if (options.isEmpty) return [const Text('Spin…')];
     return [
-      Text('${ch['prompt'] ?? 'Spin'}', style: const TextStyle(fontWeight: FontWeight.w900)),
-      Text(options[spinIdx % options.length], style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900)),
-      Row(
-        children: [
-          OutlinedButton(
-            onPressed: () {
-              var ticks = 0;
-              Timer.periodic(const Duration(milliseconds: 60), (t) {
-                setState(() => spinIdx++);
-                if (++ticks > 20) t.cancel();
-              });
-            },
-            child: const Text('Tourner'),
-          ),
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: () => widget.room.send('spin_to_win_submit', {'value': options[spinIdx % options.length]}),
-            child: const Text('Valider'),
-          ),
-        ],
+      SpinWheelChallenge(
+        prompt: '${ch['prompt'] ?? 'Spin'}',
+        options: options,
+        onSubmit: (value) => widget.room.send('spin_to_win_submit', {'value': value}),
       ),
     ];
   }
