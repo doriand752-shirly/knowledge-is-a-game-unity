@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Kiag
 {
-    /// <summary>Broadcast-style camera cuts for theme doors / pads / pyramid.</summary>
+    /// <summary>Broadcast-style camera cuts; keeps ClayPostFx focus matched to shot.</summary>
     public class CameraDirector : MonoBehaviour
     {
         Camera _broadcast;
@@ -13,7 +13,6 @@ namespace Kiag
         float _shake;
         Vector3 _basePos;
         bool _baseSet;
-        /// <summary>Soft Y bob only outside lobby (keeps opening plate readable).</summary>
         bool _allowBob;
 
         public void Bind(Camera broadcast, Camera door, Camera pad, Camera pyramid)
@@ -28,7 +27,6 @@ namespace Kiag
 
         public void CutForPhase(string phase)
         {
-            // Gate perpetual bob in lobby so the denser set + Maxime stay locked on first frame.
             _allowBob = phase != null && phase != "lobby" && phase != "countdown";
             switch (phase)
             {
@@ -39,6 +37,12 @@ namespace Kiag
                 case "question":
                 case "votes_show":
                 case "reveal":
+                case "linking":
+                case "sorting":
+                case "chain_reaction":
+                case "fill_blanks":
+                case "odd_one_out":
+                case "spin_to_win":
                     Cut("pad");
                     break;
                 case "pyramid":
@@ -58,18 +62,20 @@ namespace Kiag
         {
             _shot = shot;
             _baseSet = false;
-            SetCam(_broadcast, shot == "broadcast");
-            SetCam(_door, shot == "door");
-            SetCam(_pad, shot == "pad");
-            SetCam(_pyramid, shot == "pyramid");
+            SetCam(_broadcast, shot == "broadcast", 4.8f);
+            SetCam(_door, shot == "door", 4.2f);
+            SetCam(_pad, shot == "pad", 4.0f);
+            SetCam(_pyramid, shot == "pyramid", 5.0f);
         }
 
-        static void SetCam(Camera cam, bool on)
+        static void SetCam(Camera cam, bool on, float focus)
         {
             if (!cam) return;
             cam.enabled = on;
             var al = cam.GetComponent<AudioListener>();
             if (al) al.enabled = on;
+            var fx = cam.GetComponent<ClayPostFx>();
+            if (fx && on) fx.SetFocus(focus);
         }
 
         void LateUpdate()
@@ -88,7 +94,7 @@ namespace Kiag
                 pos += Random.insideUnitSphere * 0.04f;
             }
             if (_allowBob)
-                pos.y += Mathf.Sin(Time.time * 1.3f) * 0.03f;
+                pos.y += Mathf.Sin(Time.time * 1.3f) * 0.02f;
             active.transform.position = pos;
         }
 
