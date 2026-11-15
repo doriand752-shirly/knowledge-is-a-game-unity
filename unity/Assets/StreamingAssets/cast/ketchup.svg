@@ -1,0 +1,12 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <ellipse cx="60" cy="148" rx="32" ry="8" fill="#1f1630" opacity="0.2"/>
+  <path d="M40 22 L48 8 L60 18 L72 8 L80 22" fill="#F4C430"/><text x="60" y="18" text-anchor="middle" font-size="10" font-family="sans-serif" font-weight="800" fill="#1f1630">K</text>
+    <ellipse cx="60" cy="100" rx="34" ry="42" fill="#E63946"/>
+  <ellipse cx="60" cy="100" rx="22" ry="36" fill="#F4C430"/>
+  <path d="M40 78 Q60 70 80 78" stroke="#2A9D8F" stroke-width="6" fill="none"/>
+  <path d="M38 110 Q60 118 82 110" stroke="#2A9D8F" stroke-width="6" fill="none"/>
+  <rect x="28" y="88" width="14" height="28" rx="6" fill="#E63946"/>
+  <rect x="78" y="88" width="14" height="28" rx="6" fill="#E63946"/>
+  <circle cx="60" cy="42" r="28" fill="#ffc9b5" class="cast-face-slot"/>
+  <circle cx="60" cy="42" r="28" fill="none" stroke="#F4C430" stroke-width="3"/>
+</svg>

@@ -1,0 +1,167 @@
+{
+  "id": "general-fr",
+  "title": "Culture générale",
+  "locale": "fr",
+  "questions": [
+    {
+      "id": "g1",
+      "type": "qcm",
+      "prompt": "Quelle est la capitale de l’Australie ?",
+      "choices": [
+        { "id": "a", "label": "Sydney" },
+        { "id": "b", "label": "Melbourne" },
+        { "id": "c", "label": "Canberra" },
+        { "id": "d", "label": "Perth" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Géo",
+      "difficulty": 2,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "g2",
+      "type": "qcm",
+      "prompt": "Selon certaines mesures, quel fleuve est souvent cité comme le plus long du monde ?",
+      "choices": [
+        { "id": "a", "label": "Amazone" },
+        { "id": "b", "label": "Nil" },
+        { "id": "c", "label": "Yangtsé" },
+        { "id": "d", "label": "Mississippi" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Géo",
+      "difficulty": 2,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "g3",
+      "type": "qcm",
+      "prompt": "En quelle année l’homme a-t-il marché sur la Lune pour la première fois ?",
+      "choices": [
+        { "id": "a", "label": "1959" },
+        { "id": "b", "label": "1965" },
+        { "id": "c", "label": "1969" },
+        { "id": "d", "label": "1972" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Histoire",
+      "difficulty": 1,
+      "points": 120,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "g4",
+      "type": "qcm",
+      "prompt": "Quel est le symbole chimique de l’or ?",
+      "choices": [
+        { "id": "a", "label": "Ag" },
+        { "id": "b", "label": "Au" },
+        { "id": "c", "label": "Fe" },
+        { "id": "d", "label": "Or" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Sciences",
+      "difficulty": 1,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "g5",
+      "type": "qcm",
+      "prompt": "Qui a peint La Joconde ?",
+      "choices": [
+        { "id": "a", "label": "Michel-Ange" },
+        { "id": "b", "label": "Léonard de Vinci" },
+        { "id": "c", "label": "Raphaël" },
+        { "id": "d", "label": "Botticelli" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Art",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "g6",
+      "type": "qcm",
+      "prompt": "Combien y a-t-il de continents généralement recensés ?",
+      "choices": [
+        { "id": "a", "label": "5" },
+        { "id": "b", "label": "6" },
+        { "id": "c", "label": "7" },
+        { "id": "d", "label": "8" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Géo",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "g7",
+      "type": "qcm",
+      "prompt": "Combien de joueurs composent une équipe de football sur le terrain ?",
+      "choices": [
+        { "id": "a", "label": "9" },
+        { "id": "b", "label": "10" },
+        { "id": "c", "label": "11" },
+        { "id": "d", "label": "12" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Sport",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "g8",
+      "type": "qcm",
+      "prompt": "Dans quel pays se trouve le Machu Picchu ?",
+      "choices": [
+        { "id": "a", "label": "Chili" },
+        { "id": "b", "label": "Bolivie" },
+        { "id": "c", "label": "Pérou" },
+        { "id": "d", "label": "Mexique" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Géo",
+      "difficulty": 1,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "g9",
+      "type": "qcm",
+      "prompt": "Quelle est la capitale de l’Italie ?",
+      "choices": [
+        { "id": "a", "label": "Milan" },
+        { "id": "b", "label": "Rome" },
+        { "id": "c", "label": "Venise" },
+        { "id": "d", "label": "Naples" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Géo",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "g10",
+      "type": "qcm",
+      "prompt": "Quel est l’animal emblématique de l’Australie ?",
+      "choices": [
+        { "id": "a", "label": "Panda" },
+        { "id": "b", "label": "Kangourou" },
+        { "id": "c", "label": "Lama" },
+        { "id": "d", "label": "Éléphant" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Nature",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    }
+  ]
+}

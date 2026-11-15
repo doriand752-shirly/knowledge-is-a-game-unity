@@ -1,0 +1,19 @@
+{
+    "name": "Colyseus.Editor.Tests",
+    "references": [
+        "ColyseusSDK"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "COLYSEUS_SDK_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

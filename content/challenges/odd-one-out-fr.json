@@ -1,0 +1,50 @@
+{
+  "kind": "odd_one_out",
+  "packs": [
+    {
+      "id": "odd-instruments",
+      "title": "L’intrus musical",
+      "timeLimitSec": 18,
+      "prompt": "Quel instrument n’est pas à cordes ?",
+      "items": [
+        { "id": "a", "label": "Guitare" },
+        { "id": "b", "label": "Violon" },
+        { "id": "c", "label": "Trompette" },
+        { "id": "d", "label": "Harpe" },
+        { "id": "e", "label": "Violoncelle" },
+        { "id": "f", "label": "Banjo" }
+      ],
+      "oddId": "c"
+    },
+    {
+      "id": "odd-decades",
+      "title": "L’intrus des décennies",
+      "timeLimitSec": 16,
+      "prompt": "Quel objet n’est pas typique des années 90 ?",
+      "items": [
+        { "id": "a", "label": "Tamagotchi" },
+        { "id": "b", "label": "Game Boy" },
+        { "id": "c", "label": "Smartwatch" },
+        { "id": "d", "label": "CD Walkman" },
+        { "id": "e", "label": "Nokia 3310" },
+        { "id": "f", "label": "Disquette" }
+      ],
+      "oddId": "c"
+    },
+    {
+      "id": "odd-food",
+      "title": "L’intrus du frigo",
+      "timeLimitSec": 15,
+      "prompt": "Lequel n’est PAS un fromage ?",
+      "items": [
+        { "id": "a", "label": "Comté" },
+        { "id": "b", "label": "Roquefort" },
+        { "id": "c", "label": "Chorizo" },
+        { "id": "d", "label": "Brie" },
+        { "id": "e", "label": "Mozzarella" },
+        { "id": "f", "label": "Reblochon" }
+      ],
+      "oddId": "c"
+    }
+  ]
+}

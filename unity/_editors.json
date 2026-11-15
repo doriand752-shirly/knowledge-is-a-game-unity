@@ -1,0 +1,23 @@
+﻿
+[
+  {
+    "version": "7000.0.0a16",
+    "architecture": "x86_64"
+  },
+  {
+    "version": "6000.7.0b9",
+    "architecture": "x86_64"
+  },
+  {
+    "version": "6000.3.28f1",
+    "architecture": "x86_64"
+  },
+  {
+    "version": "6000.0.85f2",
+    "architecture": "x86_64"
+  },
+  {
+    "version": "6000.6.9f1",
+    "architecture": "x86_64"
+  }
+]

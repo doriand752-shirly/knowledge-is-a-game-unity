@@ -1,0 +1,23 @@
+{
+  "name": "knowledge-is-a-game-unity",
+  "private": true,
+  "version": "2.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @quizene/shared && npm run build -w @quizene/server",
+    "build:status-web": "node scripts/write-status-page.mjs",
+    "build:all": "npm run build && npm run build:status-web",
+    "start": "npm run start -w @quizene/server",
+    "dev:server": "npm run build -w @quizene/shared && npm run dev -w @quizene/server",
+    "typecheck": "npm run build -w @quizene/shared && npm run typecheck -w @quizene/server"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

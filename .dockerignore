@@ -1,0 +1,8 @@
+node_modules
+**/node_modules
+.git
+.vite
+*.log
+.env
+.env.*
+# Keep dist/ for runtime image deploys; full source builds regenerate it

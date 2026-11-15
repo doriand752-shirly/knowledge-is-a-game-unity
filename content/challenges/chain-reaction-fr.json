@@ -1,0 +1,51 @@
+{
+  "kind": "chain_reaction",
+  "packs": [
+    {
+      "id": "chain-pop-80s",
+      "title": "Chaîne années 80",
+      "timeLimitSec": 38,
+      "start": "Walkman",
+      "steps": [
+        { "prompt": "Après Walkman → ?", "answer": "Cassette" },
+        { "prompt": "Après Cassette → ?", "answer": "Radio" },
+        { "prompt": "Après Radio → ?", "answer": "Antenne" },
+        { "prompt": "Après Antenne → ?", "answer": "TV" },
+        { "prompt": "Après TV → ?", "answer": "Zapette" },
+        { "prompt": "Après Zapette → ?", "answer": "Publicité" },
+        { "prompt": "Après Publicité → ?", "answer": "Jingle" }
+      ],
+      "choices": ["Cassette", "Radio", "Antenne", "TV", "Zapette", "Publicité", "Jingle", "CD", "MP3", "Laserdisc", "VHS"]
+    },
+    {
+      "id": "chain-cinema",
+      "title": "Chaîne cinéma",
+      "timeLimitSec": 36,
+      "start": "Scénario",
+      "steps": [
+        { "prompt": "Après Scénario → ?", "answer": "Tournage" },
+        { "prompt": "Après Tournage → ?", "answer": "Montage" },
+        { "prompt": "Après Montage → ?", "answer": "Bande-annonce" },
+        { "prompt": "Après Bande-annonce → ?", "answer": "Première" },
+        { "prompt": "Après Première → ?", "answer": "Critique" },
+        { "prompt": "Après Critique → ?", "answer": "Oscars" }
+      ],
+      "choices": ["Tournage", "Montage", "Bande-annonce", "Première", "Critique", "Oscars", "Pop-corn", "Rideau", "Figurant"]
+    },
+    {
+      "id": "chain-web",
+      "title": "Chaîne du net",
+      "timeLimitSec": 34,
+      "start": "Clavier",
+      "steps": [
+        { "prompt": "Après Clavier → ?", "answer": "Mot de passe" },
+        { "prompt": "Après Mot de passe → ?", "answer": "Compte" },
+        { "prompt": "Après Compte → ?", "answer": "Feed" },
+        { "prompt": "Après Feed → ?", "answer": "Like" },
+        { "prompt": "Après Like → ?", "answer": "Notif" },
+        { "prompt": "Après Notif → ?", "answer": "Doomscroll" }
+      ],
+      "choices": ["Mot de passe", "Compte", "Feed", "Like", "Notif", "Doomscroll", "Cookie", "Wifi", "Spam"]
+    }
+  ]
+}

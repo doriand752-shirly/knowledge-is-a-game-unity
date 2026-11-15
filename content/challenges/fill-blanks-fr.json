@@ -1,0 +1,38 @@
+{
+  "kind": "fill_blanks",
+  "packs": [
+    {
+      "id": "blank-hits",
+      "title": "Complète le tube",
+      "timeLimitSec": 32,
+      "sentence": "Dans le noir, on allume la ___ , on monte le ___ et on lance la ___.",
+      "blanks": [
+        { "id": "b1", "options": ["télé", "lampe", "console", "bouilloire"], "correct": "télé" },
+        { "id": "b2", "options": ["son", "toit", "rideau", "volume zero"], "correct": "son" },
+        { "id": "b3", "options": ["soirée", "soupe", "sieste", "facture"], "correct": "soirée" }
+      ]
+    },
+    {
+      "id": "blank-geo",
+      "title": "Phrase à trous — géo",
+      "timeLimitSec": 30,
+      "sentence": "La Tour ___ se trouve à ___ , près de la ___ .",
+      "blanks": [
+        { "id": "b1", "options": ["Eiffel", "Pise", "CN", "Blackpool"], "correct": "Eiffel" },
+        { "id": "b2", "options": ["Paris", "Rome", "Londres", "Osaka"], "correct": "Paris" },
+        { "id": "b3", "options": ["Seine", "Tamise", "Tibre", "Loire"], "correct": "Seine" }
+      ]
+    },
+    {
+      "id": "blank-space",
+      "title": "Espace à trous",
+      "timeLimitSec": 30,
+      "sentence": "Neil ___ a marché sur la ___ en ___ .",
+      "blanks": [
+        { "id": "b1", "options": ["Armstrong", "Aldrin", "Gagarine", "Glenn"], "correct": "Armstrong" },
+        { "id": "b2", "options": ["Lune", "Mars", "ISS", "Pluton"], "correct": "Lune" },
+        { "id": "b3", "options": ["1969", "1959", "1979", "1989"], "correct": "1969" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "id": "party-fr",
+  "title": "Soirée party",
+  "locale": "fr",
+  "questions": [
+    {
+      "id": "p1",
+      "type": "qcm",
+      "prompt": "Combien de côtés a un hexagone ?",
+      "choices": [
+        { "id": "a", "label": "5" },
+        { "id": "b", "label": "6" },
+        { "id": "c", "label": "7" },
+        { "id": "d", "label": "8" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Logique",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p2",
+      "type": "qcm",
+      "prompt": "Combien y a-t-il de minutes dans une journée ?",
+      "choices": [
+        { "id": "a", "label": "1 000" },
+        { "id": "b", "label": "1 240" },
+        { "id": "c", "label": "1 440" },
+        { "id": "d", "label": "1 600" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Maths",
+      "difficulty": 2,
+      "points": 120,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p3",
+      "type": "qcm",
+      "prompt": "Quel fruit est aussi le nom d’un géant de la tech ?",
+      "choices": [
+        { "id": "a", "label": "Banane" },
+        { "id": "b", "label": "Pomme" },
+        { "id": "c", "label": "Orange" },
+        { "id": "d", "label": "Poire" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Tech",
+      "difficulty": 1,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p4",
+      "type": "qcm",
+      "prompt": "Combien de bits contient un octet ?",
+      "choices": [
+        { "id": "a", "label": "4" },
+        { "id": "b", "label": "8" },
+        { "id": "c", "label": "16" },
+        { "id": "d", "label": "32" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Tech",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p5",
+      "type": "qcm",
+      "prompt": "Quel instrument a des touches blanches et noires ?",
+      "choices": [
+        { "id": "a", "label": "Guitare" },
+        { "id": "b", "label": "Piano" },
+        { "id": "c", "label": "Batterie" },
+        { "id": "d", "label": "Trombone" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Musique",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p6",
+      "type": "qcm",
+      "prompt": "Quelle planète est surnommée la planète rouge ?",
+      "choices": [
+        { "id": "a", "label": "Vénus" },
+        { "id": "b", "label": "Mars" },
+        { "id": "c", "label": "Jupiter" },
+        { "id": "d", "label": "Mercure" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Sciences",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p7",
+      "type": "qcm",
+      "prompt": "Combien de côtés a un panneau stop (octogone) ?",
+      "choices": [
+        { "id": "a", "label": "6" },
+        { "id": "b", "label": "7" },
+        { "id": "c", "label": "8" },
+        { "id": "d", "label": "10" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Logique",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p8",
+      "type": "qcm",
+      "prompt": "Quelle couleur a le ciel par beau temps ?",
+      "choices": [
+        { "id": "a", "label": "Vert" },
+        { "id": "b", "label": "Bleu" },
+        { "id": "c", "label": "Violet" },
+        { "id": "d", "label": "Orange" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Fun",
+      "difficulty": 1,
+      "points": 60,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p9",
+      "type": "qcm",
+      "prompt": "Le café décaféiné contient-il encore un peu de caféine ?",
+      "choices": [
+        { "id": "a", "label": "Non, zéro" },
+        { "id": "b", "label": "Oui, un peu" },
+        { "id": "c", "label": "Deux fois plus" },
+        { "id": "d", "label": "Seulement la nuit" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Fun",
+      "difficulty": 2,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p10",
+      "type": "qcm",
+      "prompt": "Quel est le plus grand océan ?",
+      "choices": [
+        { "id": "a", "label": "Atlantique" },
+        { "id": "b", "label": "Indien" },
+        { "id": "c", "label": "Pacifique" },
+        { "id": "d", "label": "Arctique" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Géo",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p11",
+      "type": "qcm",
+      "prompt": "En informatique, que signifie « WWW » ?",
+      "choices": [
+        { "id": "a", "label": "World Wide Web" },
+        { "id": "b", "label": "Wide World Web" },
+        { "id": "c", "label": "Web World Wide" },
+        { "id": "d", "label": "Wired Web World" }
+      ],
+      "correctChoiceIds": ["a"],
+      "category": "Tech",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "p12",
+      "type": "qcm",
+      "prompt": "Combien de lettres dans l’alphabet français ?",
+      "choices": [
+        { "id": "a", "label": "24" },
+        { "id": "b", "label": "25" },
+        { "id": "c", "label": "26" },
+        { "id": "d", "label": "28" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Langue",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    }
+  ]
+}

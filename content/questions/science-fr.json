@@ -1,0 +1,167 @@
+{
+  "id": "science-fr",
+  "title": "Sciences & tech",
+  "locale": "fr",
+  "questions": [
+    {
+      "id": "s1",
+      "type": "qcm",
+      "prompt": "Quelle particule porte une charge négative ?",
+      "choices": [
+        { "id": "a", "label": "Proton" },
+        { "id": "b", "label": "Neutron" },
+        { "id": "c", "label": "Électron" },
+        { "id": "d", "label": "Photon" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Physique",
+      "difficulty": 1,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "s2",
+      "type": "qcm",
+      "prompt": "Quelle est la formule chimique de l’eau ?",
+      "choices": [
+        { "id": "a", "label": "CO₂" },
+        { "id": "b", "label": "H₂O" },
+        { "id": "c", "label": "O₂" },
+        { "id": "d", "label": "NaCl" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Chimie",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "s3",
+      "type": "qcm",
+      "prompt": "Environ combien de kilomètres séparent la Terre de la Lune ?",
+      "choices": [
+        { "id": "a", "label": "38 000" },
+        { "id": "b", "label": "150 000" },
+        { "id": "c", "label": "384 000" },
+        { "id": "d", "label": "1 000 000" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Espace",
+      "difficulty": 3,
+      "points": 150,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "s4",
+      "type": "qcm",
+      "prompt": "Qu’est-ce qui voyage le plus vite ?",
+      "choices": [
+        { "id": "a", "label": "Le son" },
+        { "id": "b", "label": "La lumière" },
+        { "id": "c", "label": "Un TGV" },
+        { "id": "d", "label": "Le vent" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Physique",
+      "difficulty": 1,
+      "points": 60,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "s5",
+      "type": "qcm",
+      "prompt": "Qui a proposé la théorie de la relativité restreinte ?",
+      "choices": [
+        { "id": "a", "label": "Newton" },
+        { "id": "b", "label": "Einstein" },
+        { "id": "c", "label": "Galilée" },
+        { "id": "d", "label": "Maxwell" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Histoire des sciences",
+      "difficulty": 1,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "s6",
+      "type": "qcm",
+      "prompt": "Quel gaz les plantes absorbent principalement pour la photosynthèse ?",
+      "choices": [
+        { "id": "a", "label": "Oxygène" },
+        { "id": "b", "label": "Azote" },
+        { "id": "c", "label": "Dioxyde de carbone" },
+        { "id": "d", "label": "Hélium" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Bio",
+      "difficulty": 1,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "s7",
+      "type": "qcm",
+      "prompt": "Quelle est l’unité SI de la force ?",
+      "choices": [
+        { "id": "a", "label": "Joule" },
+        { "id": "b", "label": "Watt" },
+        { "id": "c", "label": "Newton" },
+        { "id": "d", "label": "Pascal" }
+      ],
+      "correctChoiceIds": ["c"],
+      "category": "Physique",
+      "difficulty": 2,
+      "points": 100,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "s8",
+      "type": "qcm",
+      "prompt": "Température d’ébullition de l’eau à pression standard ?",
+      "choices": [
+        { "id": "a", "label": "90 °C" },
+        { "id": "b", "label": "100 °C" },
+        { "id": "c", "label": "110 °C" },
+        { "id": "d", "label": "212 °C" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Chimie",
+      "difficulty": 1,
+      "points": 60,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "s9",
+      "type": "qcm",
+      "prompt": "Combien de planètes dans le système solaire (après 2006) ?",
+      "choices": [
+        { "id": "a", "label": "7" },
+        { "id": "b", "label": "8" },
+        { "id": "c", "label": "9" },
+        { "id": "d", "label": "10" }
+      ],
+      "correctChoiceIds": ["b"],
+      "category": "Espace",
+      "difficulty": 1,
+      "points": 80,
+      "timeLimitSec": 10
+    },
+    {
+      "id": "s10",
+      "type": "qcm",
+      "prompt": "ADN signifie… ?",
+      "choices": [
+        { "id": "a", "label": "Acide désoxyribonucléique" },
+        { "id": "b", "label": "Acide dinucléaire" },
+        { "id": "c", "label": "Agent de nutrition" },
+        { "id": "d", "label": "Atome de nitrogen" }
+      ],
+      "correctChoiceIds": ["a"],
+      "category": "Bio",
+      "difficulty": 2,
+      "points": 100,
+      "timeLimitSec": 10
+    }
+  ]
+}

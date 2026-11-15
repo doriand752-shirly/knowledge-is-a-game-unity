@@ -1,0 +1,29 @@
+{
+  "kind": "spin_to_win",
+  "packs": [
+    {
+      "id": "spin-colors",
+      "title": "Spin — drapeaux",
+      "timeLimitSec": 28,
+      "prompt": "Aligne une couleur du drapeau français",
+      "options": ["Bleu", "Vert", "Jaune", "Rose", "Orange", "Violet", "Marron"],
+      "correct": "Bleu"
+    },
+    {
+      "id": "spin-years",
+      "title": "Spin — année mythique",
+      "timeLimitSec": 26,
+      "prompt": "Aligne l’année de la chute du Mur de Berlin",
+      "options": ["1985", "1987", "1989", "1991", "1995", "2000", "1969"],
+      "correct": "1989"
+    },
+    {
+      "id": "spin-elements",
+      "title": "Spin — chimie flash",
+      "timeLimitSec": 24,
+      "prompt": "Aligne le symbole de l’or",
+      "options": ["Au", "Ag", "Fe", "Cu", "Pb", "Sn", "Hg"],
+      "correct": "Au"
+    }
+  ]
+}

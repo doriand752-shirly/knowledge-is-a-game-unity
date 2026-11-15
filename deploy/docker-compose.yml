@@ -1,0 +1,23 @@
+services:
+  quizene:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.runtime
+    container_name: quizene
+    restart: unless-stopped
+    ports:
+      - "2567:2567"
+    environment:
+      PORT: "2567"
+      PUBLIC_WEB_URL: "${PUBLIC_WEB_URL:-http://127.0.0.1:2567}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:2567/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
