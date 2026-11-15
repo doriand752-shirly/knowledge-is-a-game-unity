@@ -153,7 +153,7 @@ platform :ios do
         ipa: ipa,
         skip_waiting_for_build_processing: true,
         distribute_external: false,
-        changelog: "CI build — Knowledge is a Game player (GH Actions)"
+        changelog: "CI build — Knowledge is a Game player (Codemagic/GHA)"
       )
       UI.success("UPLOAD_OK TestFlight processing should start shortly")
     else

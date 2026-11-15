@@ -42,11 +42,14 @@ flutter build apk --release --dart-define=KIAG_API=http://85.17.145.134:2567
 
 APK: `mobile\build\app\outputs\flutter-apk\app-release.apk`
 
-### 3. Flutter iOS → TestFlight (GitHub Actions — This PC only)
+### 3. Flutter iOS → TestFlight (Codemagic FREE — This PC only)
 
-**Do not use Dimitri’s Mac.** IPA builds on `macos-latest` via `.github/workflows/ios-testflight.yml` (Fastlane `ci_testflight` + Appy Geek ASC API key secrets).
+**Do not use Dimitri’s Mac.** GitHub Actions is **blocked** (billing / spending limit). Ship IPA via **Codemagic free** personal plan (`codemagic.yaml` → Fastlane `ci_testflight`).
 
 Bundle ID: `com.knowledgeisagame.kiagPlayer` · ASC app `6835082408` · Team `2QKC854C2J`.
+
+**One-time signup + env group `asc`:** [`docs/codemagic-free-ios.md`](codemagic-free-ios.md)  
+Trigger after API token: `mobile\scripts\trigger-codemagic-ios.ps1`
 
 #### Credentials (same as Appy Geek — never commit / never paste into chat)
 
@@ -65,7 +68,7 @@ Sync on Windows (writes gitignored files, prints lengths only):
 node mobile\ios\asc\sync-asc-from-appy-geek.mjs
 ```
 
-Push secrets + run workflow (from This PC):
+#### Backup — GitHub Actions (after billing fixed)
 
 ```bat
 cd c:\Users\doria\Knowledge-is-a-Game-Unity
