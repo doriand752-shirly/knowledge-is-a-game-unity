@@ -42,9 +42,9 @@ flutter build apk --release --dart-define=KIAG_API=http://85.17.145.134:2567
 
 APK: `mobile\build\app\outputs\flutter-apk\app-release.apk`
 
-### 3. Flutter iOS → TestFlight (GitHub Actions — This PC only)
+### 3. Flutter iOS → TestFlight (public GitHub Actions — free)
 
-**Do not use Dimitri’s Mac.** IPA builds on `macos-latest` via `.github/workflows/ios-testflight.yml` (Fastlane `ci_testflight` + Appy Geek ASC API key secrets).
+**Do not use Dimitri’s Mac.** Repo is **public** (`doriand752-shirly/knowledge-is-a-game-unity`) so standard `macos-*` Actions minutes are free (same as blind-box-closet). IPA via `.github/workflows/ios-testflight.yml` (Fastlane `ci_testflight` + Appy Geek ASC API key secrets). Fallback: `codemagic.yaml`.
 
 Bundle ID: `com.knowledgeisagame.kiagPlayer` · ASC app `6835082408` · Team `2QKC854C2J`.
 

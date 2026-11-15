@@ -1,5 +1,6 @@
-# Build Flutter iOS IPA on GitHub-hosted macOS and upload to TestFlight.
-# Uses App Store Connect API key (same Appy Geek ASC path). No Dimitri Mac.
+# Build Flutter iOS IPA on public GitHub-hosted macOS (free minutes) → TestFlight.
+# Signing: Xcode Automatic + ASC API key (same proven pattern as blind-box-closet).
+# No Dimitri Mac. No paid private runners.
 # Secrets: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8, APPLE_TEAM_ID, ASC_APP_ID (optional)
 name: iOS TestFlight
 
@@ -26,6 +27,13 @@ jobs:
     name: Flutter IPA → TestFlight
     runs-on: macos-latest
     timeout-minutes: 120
+    env:
+      BUNDLE_ID: com.knowledgeisagame.kiagPlayer
+      TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      KIAG_API: ${{ inputs.kiag_api }}
+      CI: '1'
 
     defaults:
       run:
@@ -56,54 +64,100 @@ jobs:
           set -euo pipefail
           pod install --repo-update
 
-      - name: Install Fastlane
-        working-directory: mobile/ios
-        run: |
-          set -euo pipefail
-          gem install bundler --no-document
-          bundle config set --local path 'vendor/bundle'
-          bundle install
-
-      - name: Write ASC API key (never echoed)
+      - name: Install ASC API key (never echoed)
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+        working-directory: ${{ github.workspace }}
         run: |
           set -euo pipefail
           test -n "${ASC_KEY_P8:-}" || { echo "MISSING_SECRET ASC_KEY_P8"; exit 1; }
           test -n "${ASC_KEY_ID:-}" || { echo "MISSING_SECRET ASC_KEY_ID"; exit 1; }
           test -n "${ASC_ISSUER_ID:-}" || { echo "MISSING_SECRET ASC_ISSUER_ID"; exit 1; }
-          test -n "${APPLE_TEAM_ID:-}" || { echo "MISSING_SECRET APPLE_TEAM_ID"; exit 1; }
-          mkdir -p ios/asc
-          KEY_FILE="ios/asc/AuthKey_${ASC_KEY_ID}.p8"
-          printf '%s\n' "$ASC_KEY_P8" > "$KEY_FILE"
+          test -n "${TEAM_ID:-}" || { echo "MISSING_SECRET APPLE_TEAM_ID"; exit 1; }
+
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          KEY_HOME="$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          printf '%s\n' "$ASC_KEY_P8" > "$KEY_HOME"
+          chmod 600 "$KEY_HOME"
+
+          mkdir -p mobile/ios/asc
+          KEY_REPO="mobile/ios/asc/AuthKey_${ASC_KEY_ID}.p8"
+          cp "$KEY_HOME" "$KEY_REPO"
           {
             echo "ASC_KEY_ID=${ASC_KEY_ID}"
             echo "ASC_ISSUER_ID=${ASC_ISSUER_ID}"
-            echo "ASC_KEY_PATH=${GITHUB_WORKSPACE}/mobile/${KEY_FILE}"
+            echo "ASC_KEY_PATH=${GITHUB_WORKSPACE}/${KEY_REPO}"
             echo "ASC_KEY_FILENAME=AuthKey_${ASC_KEY_ID}.p8"
-            echo "APPLE_TEAM_ID=${APPLE_TEAM_ID}"
-            if [ -n "${ASC_APP_ID:-}" ]; then echo "ASC_APP_ID=${ASC_APP_ID}"; fi
-          } > ios/asc/.env.asc
-          echo "ASC_KEY_WRITTEN keyIdLen=${#ASC_KEY_ID} issuerLen=${#ASC_ISSUER_ID} p8Bytes=$(wc -c < "$KEY_FILE" | tr -d ' ') teamLen=${#APPLE_TEAM_ID}"
+            echo "APPLE_TEAM_ID=${TEAM_ID}"
+            if [ -n "${{ secrets.ASC_APP_ID }}" ]; then echo "ASC_APP_ID=${{ secrets.ASC_APP_ID }}"; fi
+          } > mobile/ios/asc/.env.asc
 
-      - name: Build IPA + upload (Fastlane CI)
-        env:
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
-          KIAG_API: ${{ inputs.kiag_api }}
-          UPLOAD_TO_TESTFLIGHT: ${{ inputs.upload }}
-          CI: 'true'
+          echo "ASC_KEY_PATH=$KEY_HOME" >> "$GITHUB_ENV"
+          echo "ASC_KEY_WRITTEN keyIdLen=${#ASC_KEY_ID} issuerLen=${#ASC_ISSUER_ID} p8Bytes=$(wc -c < "$KEY_HOME" | tr -d ' ') teamLen=${#TEAM_ID}"
+
+      - name: Write ExportOptions (automatic)
         working-directory: mobile/ios
         run: |
           set -euo pipefail
-          bundle exec fastlane ci_testflight
+          cat > ExportOptions.ci.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>destination</key>
+            <string>export</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>${TEAM_ID}</string>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>manageAppVersionAndBuildNumber</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Archive (xcodebuild + ASC auto-sign)
+        run: |
+          set -euo pipefail
+          # Generate Flutter ios config/build pieces, then archive like blind-box-closet
+          flutter build ios --release --config-only --dart-define=KIAG_API="${KIAG_API}"
+          mkdir -p build/ios/archive
+          # Do NOT pass PRODUCT_BUNDLE_IDENTIFIER here — it stamps every nested
+          # bundle with the app id and ASC rejects with CFBundleIdentifier Collision (90685).
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$PWD/build/ios/archive/Runner.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic
+
+      - name: Export IPA
+        run: |
+          set -euo pipefail
+          mkdir -p build/ios/ipa
+          xcodebuild -exportArchive \
+            -archivePath "$PWD/build/ios/archive/Runner.xcarchive" \
+            -exportPath "$PWD/build/ios/ipa" \
+            -exportOptionsPlist "$PWD/ios/ExportOptions.ci.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            -authenticationKeyPath "$ASC_KEY_PATH"
+          ls -la build/ios/ipa
+          IPA=$(ls -1 build/ios/ipa/*.ipa | head -n1)
+          IPA_ABS="$(cd "$(dirname "$IPA")" && pwd)/$(basename "$IPA")"
+          echo "IPA_PATH=$IPA_ABS" >> "$GITHUB_ENV"
+          echo "IPA_READY path=$IPA_ABS size=$(wc -c < "$IPA_ABS" | tr -d ' ')"
 
       - name: Upload IPA artifact
         if: always()
@@ -113,3 +167,24 @@ jobs:
           path: mobile/build/ios/ipa/*.ipa
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Upload to TestFlight
+        if: ${{ inputs.upload == true || inputs.upload == 'true' }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          IPA="${IPA_PATH:-}"
+          if [ -z "$IPA" ] || [ ! -f "$IPA" ]; then
+            IPA=$(ls mobile/build/ios/ipa/*.ipa | head -n1)
+          fi
+          test -f "$IPA" || { echo "IPA_MISSING"; exit 1; }
+          # Place key where altool expects it
+          mkdir -p private_keys
+          cp "$ASC_KEY_PATH" "private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA" \
+            --apiKey "$ASC_KEY_ID" \
+            --apiIssuer "$ASC_ISSUER_ID" \
+            --verbose
+          echo "UPLOAD_OK TestFlight processing should start shortly"

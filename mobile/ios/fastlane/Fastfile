@@ -81,8 +81,15 @@ platform :ios do
     api = ENV["KIAG_API"] || "http://85.17.145.134:2567"
     bundle_id = "com.knowledgeisagame.kiagPlayer"
 
-    # Team-level distribution cert + App Store profile for this bundle
-    get_certificates(api_key: api_key, platform: "ios")
+    # Install cert into the CI keychain created by setup_ci (not login.keychain)
+    kc_path = lane_context[SharedValues::KEYCHAIN_PATH]
+    kc_password = lane_context[SharedValues::KEYCHAIN_PASSWORD].to_s
+    cert_opts = { api_key: api_key, platform: "ios" }
+    if kc_path
+      cert_opts[:keychain_path] = File.expand_path(kc_path)
+      cert_opts[:keychain_password] = kc_password
+    end
+    get_certificates(cert_opts)
     get_provisioning_profile(
       api_key: api_key,
       app_identifier: bundle_id,

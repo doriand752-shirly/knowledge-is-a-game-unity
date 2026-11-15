@@ -1,10 +1,11 @@
 # iOS TestFlight — Knowledge is a Game (player)
 
-**Preferred path:** GitHub Actions `macos-latest` workflow (This PC only — no Dimitri Mac).
+**Preferred path:** public GitHub Actions `macos-latest` (free minutes — same as blind-box-closet). This PC only — no Dimitri Mac.
 
-Bundle: `com.knowledgeisagame.kiagPlayer` · ASC app id `6835082408` · Team `2QKC854C2J`
+Bundle: `com.knowledgeisagame.kiagPlayer` · ASC app id `6835082408` · Team `2QKC854C2J`  
+Repo visibility: **public** (required for free hosted macOS minutes on this account).
 
-## GitHub Actions (recommended)
+## GitHub Actions (recommended — public repo)
 
 Workflow: `.github/workflows/ios-testflight.yml`  
 Lane: `mobile/ios/fastlane` → `ci_testflight`
