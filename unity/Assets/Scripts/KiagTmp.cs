@@ -21,11 +21,7 @@ namespace Kiag
                 if (_font == null && TMP_Settings.defaultFontAsset != null)
                     _font = TMP_Settings.defaultFontAsset;
                 if (_font == null)
-                {
-                    var os = Font.CreateDynamicFontFromOSFont(new[] { "Segoe UI", "Arial", "Helvetica" }, 36);
-                    if (os != null)
-                        _font = TMP_FontAsset.CreateFontAsset(os);
-                }
+                    Debug.LogError("[Kiag] TMP font missing — import TextMesh Pro Essential Resources");
                 return _font;
             }
         }
