@@ -1,7 +1,7 @@
 name: kiag_player
 description: Knowledge is a Game — app joueur Flutter (QR, QCM, Power Plays, challenges)
 publish_to: "none"
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.5.0
