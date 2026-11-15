@@ -341,6 +341,16 @@ namespace Colyseus
 			{
 				throw new Exception($"Error with request: {response}");
 			}
+
+			// Colyseus 0.15 returns { room: { roomId, processId, ... }, sessionId }.
+			// Flatten so CreateConnection builds /{processId}/{roomId}?sessionId=...
+			response.NormalizeFromLegacyServer();
+
+			if (string.IsNullOrEmpty(response.roomId) || string.IsNullOrEmpty(response.processId))
+			{
+				throw new MatchMakeException(0, "seat reservation missing roomId/processId (server/SDK mismatch)");
+			}
+
 			// forward reconnection token on reconnect
 			if (method == "reconnect")
 			{

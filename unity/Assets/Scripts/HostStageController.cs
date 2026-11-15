@@ -92,9 +92,19 @@ namespace Kiag
 
         System.Collections.IEnumerator Boot()
         {
+            if (hostLineText) hostLineText.text = "Création de la salle…";
             yield return client.CreateRoomRoutine();
+            if (!string.IsNullOrEmpty(client.LastError) || string.IsNullOrEmpty(client.RoomCode))
+            {
+                var err = client.LastError ?? "create-room: pas de roomCode";
+                if (roomCodeText) roomCodeText.text = "Salle —";
+                if (hostLineText) hostLineText.text = "Réseau: " + err;
+                if (phaseText) phaseText.text = "erreur";
+                yield break;
+            }
             if (roomCodeText) roomCodeText.text = "Salle " + client.RoomCode;
             if (hostLineText) hostLineText.text = "Scannez le QR Flutter · " + client.JoinUrl;
+            if (phaseText) phaseText.text = "lobby";
         }
 
         void SetMode(string mode)
@@ -106,7 +116,19 @@ namespace Kiag
 
         void OnStart()
         {
+            if (client == null) return;
+            if (string.IsNullOrEmpty(client.RoomCode))
+            {
+                if (hostLineText) hostLineText.text = "Pas de salle — relancez le host.";
+                return;
+            }
+            if (HostSdkBridge.SendImpl == null)
+            {
+                if (hostLineText) hostLineText.text = "Connexion Colyseus en cours… réessayez dans 2s.";
+                return;
+            }
             client.StartMatch(_mode, powerPlaysToggle == null || powerPlaysToggle.isOn);
+            if (hostLineText) hostLineText.text = "Démarrage du match…";
         }
 
         public void ApplySnapshot(MatchSnapshot snap)

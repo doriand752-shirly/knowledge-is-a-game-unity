@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -11,21 +10,63 @@ namespace Kiag
 {
     /// <summary>
     /// Host-side Colyseus bridge for Unity.
-    /// Uses HTTP create-room + matchmake, then WebSocket via native Colyseus Unity SDK when present.
-    /// Fallback: HTTP polling of a lightweight debug endpoint is not used — install Colyseus Unity SDK
-    /// (https://github.com/colyseus/colyseus-unity-sdk) and wire JoinOrCreate in OnEnable.
+    /// Uses HTTP create-room + matchmake, then WebSocket via ColyseusSdkAdapter.
     /// </summary>
     public class ColyseusHostClient : MonoBehaviour
     {
+        const string PrefsHttpKey = "kiag_api";
+
         [SerializeField] string httpBase = KiagConfig.DefaultHttp;
         [SerializeField] HostStageController stage;
 
+        public string HttpBase => httpBase;
         public string RoomCode { get; private set; }
         public MatchSnapshot Snapshot { get; private set; }
         public string JoinUrl { get; private set; }
+        public string LastError { get; private set; }
 
         public event Action<MatchSnapshot> SnapshotReceived;
         public event Action<string> ToastReceived;
+
+        void Awake()
+        {
+            ResolveHttpBase();
+        }
+
+        void ResolveHttpBase()
+        {
+            var fromPrefs = PlayerPrefs.GetString(PrefsHttpKey, "");
+            if (string.IsNullOrWhiteSpace(fromPrefs))
+                fromPrefs = PlayerPrefs.GetString("KIAG_API", "");
+            if (!string.IsNullOrWhiteSpace(fromPrefs))
+                httpBase = fromPrefs.Trim().TrimEnd('/');
+            else if (string.IsNullOrWhiteSpace(httpBase))
+                httpBase = KiagConfig.DefaultHttp;
+            else
+                httpBase = httpBase.Trim().TrimEnd('/');
+
+            // Persist default so Editor/Play and builds share the same override key.
+            if (string.IsNullOrWhiteSpace(PlayerPrefs.GetString(PrefsHttpKey, "")))
+            {
+                PlayerPrefs.SetString(PrefsHttpKey, httpBase);
+                PlayerPrefs.Save();
+            }
+
+            Debug.Log($"[Kiag] API base = {httpBase}");
+        }
+
+        public string WsBase
+        {
+            get
+            {
+                var h = httpBase.Trim().TrimEnd('/');
+                if (h.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    return "wss://" + h.Substring("https://".Length);
+                if (h.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                    return "ws://" + h.Substring("http://".Length);
+                return h;
+            }
+        }
 
         /// <summary>Invoked by Colyseus SDK adapter when a snapshot message arrives.</summary>
         public void OnSnapshotMessage(object data)
@@ -58,22 +99,46 @@ namespace Kiag
 
         public IEnumerator CreateRoomRoutine()
         {
-            using var req = UnityWebRequest.PostWwwForm(httpBase.TrimEnd('/') + "/api/create-room", "");
+            LastError = null;
+            RoomCode = null;
+            JoinUrl = null;
+            ResolveHttpBase();
+
+            var url = httpBase + "/api/create-room";
+            using var req = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
+            var body = Encoding.UTF8.GetBytes("{}");
+            req.uploadHandler = new UploadHandlerRaw(body);
+            req.downloadHandler = new DownloadHandlerBuffer();
+            req.SetRequestHeader("Content-Type", "application/json");
             yield return req.SendWebRequest();
+
             if (req.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogError("[Kiag] create-room failed: " + req.error);
+                LastError = $"create-room failed: {req.error} ({req.responseCode}) → {url}";
+                Debug.LogError("[Kiag] " + LastError);
                 yield break;
             }
-            var jo = JObject.Parse(req.downloadHandler.text);
-            RoomCode = jo.Value<string>("roomCode");
-            JoinUrl = jo.Value<string>("joinUrl");
-            Debug.Log($"[Kiag] Room {RoomCode} — join {JoinUrl}");
+
+            try
+            {
+                var jo = JObject.Parse(req.downloadHandler.text);
+                RoomCode = jo.Value<string>("roomCode");
+                JoinUrl = jo.Value<string>("joinUrl");
+                if (string.IsNullOrEmpty(RoomCode))
+                {
+                    LastError = "create-room returned empty roomCode: " + req.downloadHandler.text;
+                    Debug.LogError("[Kiag] " + LastError);
+                    yield break;
+                }
+                Debug.Log($"[Kiag] Room {RoomCode} — join {JoinUrl}");
+            }
+            catch (Exception e)
+            {
+                LastError = "create-room parse: " + e.Message;
+                Debug.LogError("[Kiag] " + LastError);
+            }
         }
 
-        /// <summary>
-        /// Placeholder send — replace body with Colyseus Room.Send when SDK is linked.
-        /// </summary>
         public void Send(string type, object payload = null)
         {
             Debug.Log($"[Kiag] Send {type} {JsonConvert.SerializeObject(payload ?? new { })}");
@@ -92,7 +157,7 @@ namespace Kiag
     }
 
     /// <summary>
-    /// Static bridge filled by ColyseusSdkAdapter.cs once the official Unity SDK package is imported.
+    /// Static bridge filled by ColyseusSdkAdapter once the host room is joined.
     /// </summary>
     public static class HostSdkBridge
     {

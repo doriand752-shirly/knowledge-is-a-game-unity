@@ -23,6 +23,10 @@ namespace Kiag.Editor
         public static void BuildWindows()
         {
             EnsureScene();
+            // Allow http:// VPS (85.17.145.134:2567) in release players.
+            PlayerSettings.insecureHttpOption = InsecureHttpOption.AlwaysAllowed;
+            if (Resources.Load("TMP Settings") == null)
+                Debug.LogError("[Kiag] TMP Settings missing — import Assets/TextMesh Pro/Resources before shipping.");
             var opts = new BuildPlayerOptions
             {
                 scenes = new[] { ScenePath },

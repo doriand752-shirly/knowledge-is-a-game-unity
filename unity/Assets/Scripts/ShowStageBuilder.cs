@@ -266,14 +266,24 @@ namespace Kiag
             PowerPlaysToggle = togGo.AddComponent<Toggle>();
             PowerPlaysToggle.isOn = true;
             var togLabel = UiText(togGo.transform, "PPLabel", "Power Plays", 18, TextAnchor.MiddleLeft, Vector2.zero);
-            togLabel.rectTransform.sizeDelta = new Vector2(160, 28);
+            if (togLabel != null) togLabel.rectTransform.sizeDelta = new Vector2(160, 28);
         }
 
         TMP_Text UiText(Transform parent, string name, string text, float size, TextAnchor anchor, Vector2 pos)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
-            var tmp = go.AddComponent<TextMeshProUGUI>();
+            TextMeshProUGUI tmp;
+            try
+            {
+                tmp = go.AddComponent<TextMeshProUGUI>();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[Kiag] TMP UI failed (import TextMesh Pro Essential Resources): " + e.Message);
+                Destroy(go);
+                return null;
+            }
             tmp.text = text;
             tmp.fontSize = size;
             tmp.fontStyle = FontStyles.Bold;
@@ -320,10 +330,13 @@ namespace Kiag
             rt.sizeDelta = new Vector2(120, 40);
             rt.anchoredPosition = pos;
             var t = UiText(go.transform, "Label", label, 16, TextAnchor.MiddleCenter, Vector2.zero);
-            t.rectTransform.anchorMin = Vector2.zero;
-            t.rectTransform.anchorMax = Vector2.one;
-            t.rectTransform.offsetMin = Vector2.zero;
-            t.rectTransform.offsetMax = Vector2.zero;
+            if (t != null)
+            {
+                t.rectTransform.anchorMin = Vector2.zero;
+                t.rectTransform.anchorMax = Vector2.one;
+                t.rectTransform.offsetMin = Vector2.zero;
+                t.rectTransform.offsetMax = Vector2.zero;
+            }
             return btn;
         }
 
@@ -345,7 +358,17 @@ namespace Kiag
             var go = new GameObject("TMP");
             go.transform.SetParent(parent, false);
             go.transform.localPosition = localPos;
-            var tmp = go.AddComponent<TextMeshPro>();
+            TextMeshPro tmp;
+            try
+            {
+                tmp = go.AddComponent<TextMeshPro>();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[Kiag] TMP billboard failed (import TextMesh Pro Essential Resources): " + e.Message);
+                Object.Destroy(go);
+                return null;
+            }
             tmp.text = text;
             tmp.fontSize = 4;
             tmp.alignment = TextAlignmentOptions.Center;
