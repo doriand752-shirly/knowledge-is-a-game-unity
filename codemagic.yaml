@@ -1,7 +1,11 @@
-# Codemagic fallback when GitHub Actions macOS is unavailable (billing).
+# FREE path: Codemagic personal plan — 500 macOS M2 minutes/month, $0, no card.
+# Preferred while GitHub Actions is blocked (billing / spending limit).
 # App: Knowledge is a Game · bundle com.knowledgeisagame.kiagPlayer
-# Set group "asc" env vars in Codemagic UI (never commit): ASC_KEY_ID, ASC_ISSUER_ID,
-# ASC_KEY_P8 (PEM body), APPLE_TEAM_ID=2QKC854C2J, ASC_APP_ID=6835082408
+# Team 2QKC854C2J · ASC app 6835082408 · API http://85.17.145.134:2567
+#
+# One-time (Dorian): docs/codemagic-free-ios.md
+# Env group "asc" in Codemagic UI (never commit): ASC_KEY_ID, ASC_ISSUER_ID,
+# ASC_KEY_P8 (PEM body), APPLE_TEAM_ID, ASC_APP_ID
 workflows:
   ios-testflight:
     name: KiAG iOS TestFlight
@@ -16,27 +20,41 @@ workflows:
       vars:
         KIAG_API: "http://85.17.145.134:2567"
         BUNDLE_ID: "com.knowledgeisagame.kiagPlayer"
+        UPLOAD_TO_TESTFLIGHT: "true"
+        CI: "true"
+    cache:
+      cache_paths:
+        - $HOME/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
+        - mobile/ios/Pods
+        - mobile/ios/vendor
     scripts:
       - name: Write ASC key
         script: |
           set -euo pipefail
           cd mobile
+          test -n "${ASC_KEY_ID:-}" || { echo "MISSING_ENV ASC_KEY_ID (group asc)"; exit 1; }
+          test -n "${ASC_ISSUER_ID:-}" || { echo "MISSING_ENV ASC_ISSUER_ID (group asc)"; exit 1; }
+          test -n "${ASC_KEY_P8:-}" || { echo "MISSING_ENV ASC_KEY_P8 (group asc)"; exit 1; }
+          test -n "${APPLE_TEAM_ID:-}" || { echo "MISSING_ENV APPLE_TEAM_ID (group asc)"; exit 1; }
           mkdir -p ios/asc
           KEY_FILE="ios/asc/AuthKey_${ASC_KEY_ID}.p8"
-          printf '%s\n' "$ASC_KEY_P8" > "$KEY_FILE"
+          # Codemagic may store PEM with literal \n — normalize to real newlines
+          printf '%s\n' "$ASC_KEY_P8" | sed 's/\\n/\n/g' > "$KEY_FILE"
           {
             echo "ASC_KEY_ID=${ASC_KEY_ID}"
             echo "ASC_ISSUER_ID=${ASC_ISSUER_ID}"
             echo "ASC_KEY_PATH=$(pwd)/${KEY_FILE}"
             echo "ASC_KEY_FILENAME=AuthKey_${ASC_KEY_ID}.p8"
             echo "APPLE_TEAM_ID=${APPLE_TEAM_ID}"
-            echo "ASC_APP_ID=${ASC_APP_ID}"
+            echo "ASC_APP_ID=${ASC_APP_ID:-6835082408}"
           } > ios/asc/.env.asc
-          echo "ASC_KEY_WRITTEN keyIdLen=${#ASC_KEY_ID}"
+          echo "ASC_KEY_WRITTEN keyIdLen=${#ASC_KEY_ID} p8Bytes=$(wc -c < "$KEY_FILE" | tr -d ' ')"
       - name: Flutter pub get + pods
         script: |
           set -euo pipefail
           cd mobile
+          flutter --version
           flutter pub get
           cd ios && pod install
       - name: Fastlane ci_testflight
@@ -46,11 +64,10 @@ workflows:
           gem install bundler --no-document
           bundle config set --local path 'vendor/bundle'
           bundle install
-          export UPLOAD_TO_TESTFLIGHT=true
-          export CI=true
           bundle exec fastlane ci_testflight
     artifacts:
       - mobile/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
     publishing:
       email:
         recipients:

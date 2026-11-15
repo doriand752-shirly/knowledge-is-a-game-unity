@@ -40,11 +40,13 @@ flutter pub get
 flutter build apk --release --dart-define=KIAG_API=http://85.17.145.134:2567
 ```
 
-## Flutter iOS → TestFlight (GitHub Actions / Codemagic)
+## Flutter iOS → TestFlight (Codemagic FREE — no Dimitri Mac)
 
-Preferred: `.github/workflows/ios-testflight.yml` on `macos-latest` (This PC + `gh secret` / `gh workflow run`). Fallback: `codemagic.yaml`. Do not use Dimitri’s Mac.
+**Now:** Codemagic free plan (`codemagic.yaml`, 500 M2 min/mo, $0) — one-time signup: [`docs/codemagic-free-ios.md`](docs/codemagic-free-ios.md).  
+**Blocked:** GitHub Actions (account billing / spending limit) — workflow kept as backup.  
+Do **not** use Dimitri’s Mac.
 
-See `docs/unity-flutter-stack.md` and `mobile/scripts/README-ios-testflight.md`.
+See also `docs/unity-flutter-stack.md` and `mobile/scripts/README-ios-testflight.md`.
 
 Bundle ID: `com.knowledgeisagame.kiagPlayer` · ASC app `6835082408`
 
