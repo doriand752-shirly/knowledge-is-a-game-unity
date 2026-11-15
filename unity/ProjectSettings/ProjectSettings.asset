@@ -662,4 +662,4 @@ PlayerSettings:
   legacyClampBlendShapeWeights: 0
   holographicTrackingLossScreen: {fileID: 0}
   virtualTexturingSupportEnabled: 0
-  insecureHttpOption: 1
+  insecureHttpOption: 2
