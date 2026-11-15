@@ -40,17 +40,13 @@ flutter pub get
 flutter build apk --release --dart-define=KIAG_API=http://85.17.145.134:2567
 ```
 
-## Flutter iOS → TestFlight (macOS + Xcode required)
+## Flutter iOS → TestFlight (GitHub Actions / Codemagic)
 
-This PC is Windows — IPA must be built on a Mac. See `docs/unity-flutter-stack.md` and `mobile/scripts/README-ios-testflight.md`.
+Preferred: `.github/workflows/ios-testflight.yml` on `macos-latest` (This PC + `gh secret` / `gh workflow run`). Fallback: `codemagic.yaml`. Do not use Dimitri’s Mac.
 
-```bash
-export APPLE_TEAM_ID=XXXXXXXXXX
-export KIAG_API=http://85.17.145.134:2567
-cd mobile && ./scripts/build_ios_testflight.sh
-```
+See `docs/unity-flutter-stack.md` and `mobile/scripts/README-ios-testflight.md`.
 
-Bundle ID: `com.knowledgeisagame.kiagPlayer`
+Bundle ID: `com.knowledgeisagame.kiagPlayer` · ASC app `6835082408`
 
 ## Unity 3D host
 
