@@ -62,10 +62,10 @@ namespace Kiag
         {
             _shot = shot;
             _baseSet = false;
-            SetCam(_broadcast, shot == "broadcast", 4.8f);
-            SetCam(_door, shot == "door", 4.2f);
-            SetCam(_pad, shot == "pad", 4.0f);
-            SetCam(_pyramid, shot == "pyramid", 5.0f);
+            SetCam(_broadcast, shot == "broadcast", 5.4f);
+            SetCam(_door, shot == "door", 4.4f);
+            SetCam(_pad, shot == "pad", 4.3f);
+            SetCam(_pyramid, shot == "pyramid", 5.2f);
         }
 
         static void SetCam(Camera cam, bool on, float focus)

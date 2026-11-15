@@ -34,6 +34,7 @@ namespace Kiag
         public Button ModeDecades { get; private set; }
         public Button ModeRapide { get; private set; }
         public Toggle PowerPlaysToggle { get; private set; }
+        public GameObject ShowCanvas { get; private set; }
 
         void Awake() => BuildNow();
 
@@ -374,11 +375,11 @@ namespace Kiag
 
         void BuildCameras()
         {
-            // Lobby plate frames cast figurines + badges; other cams keep LookAt targets.
-            BroadcastCam = MakeCam("CamBroadcast", new Vector3(0, 2.55f, -4.6f), true, new Vector3(0, 1.1f, 0.6f), focus: 4.8f);
-            DoorCam = MakeCam("CamDoors", new Vector3(0, 2.6f, 2.0f), false, new Vector3(0, 2.0f, 5.5f), focus: 4.2f);
-            PadCam = MakeCam("CamPads", new Vector3(0, 2.7f, -3.4f), false, new Vector3(0, 1.0f, 0.5f), focus: 4.0f);
-            PyramidCam = MakeCam("CamPyramid", new Vector3(0, 2.7f, -1.0f), false, new Vector3(0, 2.0f, 4.2f), focus: 5.0f);
+            // Quiz Time plate: eye-level, cast mid-frame (all 4 + badges), Maxime behind doors.
+            BroadcastCam = MakeCam("CamBroadcast", new Vector3(0, 1.82f, -5.55f), true, new Vector3(0, 1.52f, 1.0f), focus: 5.7f);
+            DoorCam = MakeCam("CamDoors", new Vector3(0, 2.35f, 1.6f), false, new Vector3(0, 1.9f, 5.5f), focus: 4.4f);
+            PadCam = MakeCam("CamPads", new Vector3(0, 1.88f, -4.15f), false, new Vector3(0, 1.45f, 0.7f), focus: 4.5f);
+            PyramidCam = MakeCam("CamPyramid", new Vector3(0, 2.4f, -1.4f), false, new Vector3(0, 1.9f, 4.0f), focus: 5.2f);
             gameObject.AddComponent<CameraDirector>().Bind(BroadcastCam, DoorCam, PadCam, PyramidCam);
         }
 
@@ -391,34 +392,43 @@ namespace Kiag
             var cam = go.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = ClayPalette.BackdropSky * 0.55f;
-            cam.fieldOfView = 42; // slightly tele for figurine bokeh
+            cam.fieldOfView = 46; // fits 4 cast + pads mid-frame without huge empty floor
             cam.allowHDR = true;
             cam.enabled = enabled;
+            // Tag for Camera.main / plate capture
+            if (enabled) go.tag = "MainCamera";
             go.AddComponent<AudioListener>().enabled = enabled;
             var fx = go.AddComponent<ClayPostFx>();
-            fx.SetFocus(focus, 5.2f);
+            fx.SetFocus(focus, 4.8f);
             fx.bloomIntensity = 0.36f;
             fx.bloomThreshold = 0.58f;
             return cam;
+        }
+
+        /// <summary>Hide overlay chrome for clean TV / screenshot plate.</summary>
+        public void SetOverlayVisible(bool visible)
+        {
+            if (ShowCanvas) ShowCanvas.SetActive(visible);
         }
 
         void BuildUi()
         {
             var canvasGo = new GameObject("ShowCanvas");
             canvasGo.transform.SetParent(transform, false);
+            ShowCanvas = canvasGo;
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvasGo.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvasGo.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
             canvasGo.AddComponent<GraphicRaycaster>();
 
-            BrandText = UiText(canvasGo.transform, "Brand", KiagConfig.Brand, 28, TextAnchor.UpperLeft, new Vector2(24, -18));
-            RoomCodeText = UiText(canvasGo.transform, "Room", "Salle —", 36, TextAnchor.UpperRight, new Vector2(-24, -18));
-            PhaseText = UiText(canvasGo.transform, "Phase", "lobby", 22, TextAnchor.UpperCenter, new Vector2(0, -18));
-            TimerText = UiText(canvasGo.transform, "Timer", "", 48, TextAnchor.UpperCenter, new Vector2(0, -56));
-            HostLineText = UiText(canvasGo.transform, "HostLine", "Bienvenue sur le plateau !", 26, TextAnchor.LowerCenter, new Vector2(0, 96));
-            QuestionText = UiText(canvasGo.transform, "Question", "", 30, TextAnchor.LowerCenter, new Vector2(0, 48));
-            RevealText = UiText(canvasGo.transform, "Reveal", "", 28, TextAnchor.MiddleCenter, new Vector2(0, 120));
+            BrandText = UiText(canvasGo.transform, "Brand", KiagConfig.Brand, 22, TextAnchor.UpperLeft, new Vector2(16, -12));
+            RoomCodeText = UiText(canvasGo.transform, "Room", "Salle —", 26, TextAnchor.UpperRight, new Vector2(-16, -12));
+            PhaseText = UiText(canvasGo.transform, "Phase", "lobby", 18, TextAnchor.UpperCenter, new Vector2(0, -12));
+            TimerText = UiText(canvasGo.transform, "Timer", "", 40, TextAnchor.UpperCenter, new Vector2(0, -44));
+            HostLineText = UiText(canvasGo.transform, "HostLine", "Bienvenue sur le plateau !", 22, TextAnchor.LowerCenter, new Vector2(0, 28));
+            QuestionText = UiText(canvasGo.transform, "Question", "", 26, TextAnchor.LowerCenter, new Vector2(0, 56));
+            RevealText = UiText(canvasGo.transform, "Reveal", "", 24, TextAnchor.MiddleCenter, new Vector2(0, 100));
 
             var panel = new GameObject("LobbyPanel");
             panel.transform.SetParent(canvasGo.transform, false);
@@ -426,8 +436,8 @@ namespace Kiag
             prt.anchorMin = new Vector2(0, 0);
             prt.anchorMax = new Vector2(0, 0);
             prt.pivot = new Vector2(0, 0);
-            prt.anchoredPosition = new Vector2(24, 24);
-            prt.sizeDelta = new Vector2(420, 160);
+            prt.anchoredPosition = new Vector2(12, 12);
+            prt.sizeDelta = new Vector2(360, 120);
 
             ModeClassique = UiButton(panel.transform, "Classique", new Vector2(0, 110));
             ModeDecades = UiButton(panel.transform, "Décades", new Vector2(140, 110));

@@ -75,13 +75,10 @@ namespace Kiag.Editor
                     });
                 }
             }
-            // Prefer pad cam framing for cast line-up
-            if (builder.PadCam)
-            {
-                builder.BroadcastCam.enabled = false;
-                builder.PadCam.enabled = true;
-                cam = builder.PadCam;
-            }
+            // Broadcast lobby plate (cast mid-frame) — hide overlay chrome
+            builder.SetOverlayVisible(false);
+            if (builder.PadsRoot) builder.PadsRoot.gameObject.SetActive(true);
+            cam = builder.BroadcastCam;
 
             // -nographics batchmode crashes on soft shadow casters — disable for capture.
             var prevShadows = QualitySettings.shadows;
