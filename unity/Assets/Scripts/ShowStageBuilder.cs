@@ -375,10 +375,10 @@ namespace Kiag
 
         void BuildCameras()
         {
-            // Quiz Time plate: eye-level, cast mid-frame (all 4 + badges), Maxime behind doors.
-            BroadcastCam = MakeCam("CamBroadcast", new Vector3(0, 1.82f, -5.55f), true, new Vector3(0, 1.52f, 1.0f), focus: 5.7f);
+            // Wide TV plate: far enough that ±3.6 cast lineup + badges + Maxime are fully inside 16:9.
+            BroadcastCam = MakeCam("CamBroadcast", new Vector3(0, 2.25f, -8.4f), true, new Vector3(0, 1.4f, 1.8f), focus: 8.5f);
             DoorCam = MakeCam("CamDoors", new Vector3(0, 2.35f, 1.6f), false, new Vector3(0, 1.9f, 5.5f), focus: 4.4f);
-            PadCam = MakeCam("CamPads", new Vector3(0, 1.88f, -4.15f), false, new Vector3(0, 1.45f, 0.7f), focus: 4.5f);
+            PadCam = MakeCam("CamPads", new Vector3(0, 2.1f, -6.0f), false, new Vector3(0, 1.35f, 0.9f), focus: 6.2f);
             PyramidCam = MakeCam("CamPyramid", new Vector3(0, 2.4f, -1.4f), false, new Vector3(0, 1.9f, 4.0f), focus: 5.2f);
             gameObject.AddComponent<CameraDirector>().Bind(BroadcastCam, DoorCam, PadCam, PyramidCam);
         }
@@ -392,7 +392,7 @@ namespace Kiag
             var cam = go.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = ClayPalette.BackdropSky * 0.55f;
-            cam.fieldOfView = 46; // fits 4 cast + pads mid-frame without huge empty floor
+            cam.fieldOfView = 52; // 16:9 plate — keep all 4 side cast inside frame
             cam.allowHDR = true;
             cam.enabled = enabled;
             // Tag for Camera.main / plate capture

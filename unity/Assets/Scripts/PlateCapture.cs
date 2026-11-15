@@ -77,9 +77,11 @@ namespace Kiag
                 yield break;
             }
 
-            int w = Mathf.Max(1280, Screen.width);
-            int h = Mathf.Max(720, Screen.height);
+            // Fixed 16:9 TV plate — ignore window aspect (narrow windows were side-cropping cast).
+            const int w = 1920;
+            const int h = 1080;
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
+            cam.aspect = w / (float)h;
             var prev = cam.targetTexture;
             cam.targetTexture = rt;
             cam.Render();
