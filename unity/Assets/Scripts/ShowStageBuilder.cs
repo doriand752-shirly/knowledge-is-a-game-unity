@@ -506,19 +506,20 @@ namespace Kiag
             var go = new GameObject("Btn_" + label);
             go.transform.SetParent(parent, false);
             var img = go.AddComponent<Image>();
-            // Cream face + dark ink label (same readability fix as early TMP outage).
-            img.color = ClayPalette.ClayWhite;
+            // Dark navy face + white outlined label — survives bloom and bright stage floor.
+            img.color = ClayPalette.BackWall;
             var btn = go.AddComponent<Button>();
             var colors = btn.colors;
-            colors.normalColor = ClayPalette.ClayWhite;
-            colors.highlightedColor = Color.Lerp(ClayPalette.ClayWhite, Color.white, 0.35f);
-            colors.pressedColor = Color.Lerp(ClayPalette.ClayWhite, ClayPalette.BackWall, 0.15f);
+            colors.normalColor = ClayPalette.BackWall;
+            colors.highlightedColor = Color.Lerp(ClayPalette.BackWall, Color.white, 0.2f);
+            colors.pressedColor = Color.Lerp(ClayPalette.BackWall, Color.black, 0.2f);
             btn.colors = colors;
             var rt = go.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(128, 44);
             rt.anchoredPosition = pos;
-            var t = UiText(go.transform, "Label", label, 18, TextAnchor.MiddleCenter, Vector2.zero);
-            KiagTmp.Bind(t, ClayPalette.BadgeInk, outline: false);
+            var t = UiText(go.transform, "Label", label, 20, TextAnchor.MiddleCenter, Vector2.zero);
+            KiagTmp.Bind(t, Color.white, outline: true);
+            t.fontSize = 20;
             t.rectTransform.anchorMin = Vector2.zero;
             t.rectTransform.anchorMax = Vector2.one;
             t.rectTransform.offsetMin = Vector2.zero;

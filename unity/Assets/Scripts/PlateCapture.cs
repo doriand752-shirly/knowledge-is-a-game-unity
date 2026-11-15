@@ -56,12 +56,18 @@ namespace Kiag
                 if (_uiMode && stage.ShowCanvas != null)
                 {
                     // ScreenSpaceOverlay is invisible to cam.Render — bind UI to broadcast cam.
+                    // Kill bloom/DOF so labels stay sharp (postFX would wash cream/dark ink).
+                    if (stage.BroadcastCam != null)
+                    {
+                        var fx = stage.BroadcastCam.GetComponent<ClayPostFx>();
+                        if (fx) fx.enabled = false;
+                    }
                     var canvas = stage.ShowCanvas.GetComponent<Canvas>();
                     if (canvas != null && stage.BroadcastCam != null)
                     {
                         canvas.renderMode = RenderMode.ScreenSpaceCamera;
                         canvas.worldCamera = stage.BroadcastCam;
-                        canvas.planeDistance = 1.2f;
+                        canvas.planeDistance = 1.05f;
                     }
                     if (stage.RoomCodeText) stage.RoomCodeText.text = "Salle DEMO";
                     if (stage.PhaseText) stage.PhaseText.text = "lobby";
