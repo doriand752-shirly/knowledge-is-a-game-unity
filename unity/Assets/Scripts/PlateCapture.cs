@@ -8,6 +8,7 @@ namespace Kiag
     /// <summary>
     /// Clean TV plate grab: hide overlay chrome, wait a frame, ScreenCapture, optional quit.
     /// Launch: KnowledgeIsAGame.exe -kiagCapturePlate [outPath]
+    /// UI proof: KnowledgeIsAGame.exe -kiagCaptureUi [outPath]  (lobby buttons visible)
     /// </summary>
     public class PlateCapture : MonoBehaviour
     {
@@ -15,16 +16,21 @@ namespace Kiag
         static void MaybeArm()
         {
             var args = Environment.GetCommandLineArgs();
-            int idx = Array.FindIndex(args, a => string.Equals(a, "-kiagCapturePlate", StringComparison.OrdinalIgnoreCase));
-            if (idx < 0) return;
+            int plateIdx = Array.FindIndex(args, a => string.Equals(a, "-kiagCapturePlate", StringComparison.OrdinalIgnoreCase));
+            int uiIdx = Array.FindIndex(args, a => string.Equals(a, "-kiagCaptureUi", StringComparison.OrdinalIgnoreCase));
+            if (plateIdx < 0 && uiIdx < 0) return;
+
             var go = new GameObject("PlateCapture");
             DontDestroyOnLoad(go);
             var cap = go.AddComponent<PlateCapture>();
+            cap._uiMode = uiIdx >= 0;
+            int idx = cap._uiMode ? uiIdx : plateIdx;
             if (idx + 1 < args.Length && !args[idx + 1].StartsWith("-"))
                 cap._path = args[idx + 1];
         }
 
         string _path;
+        bool _uiMode;
 
         IEnumerator Start()
         {
@@ -36,7 +42,7 @@ namespace Kiag
             if (stage != null)
             {
                 stage.BuildNow();
-                stage.SetOverlayVisible(false);
+                stage.SetOverlayVisible(_uiMode);
                 if (stage.PadsRoot) stage.PadsRoot.gameObject.SetActive(true);
                 if (stage.BroadcastCam)
                 {
@@ -46,16 +52,34 @@ namespace Kiag
                     var al = stage.BroadcastCam.GetComponent<AudioListener>();
                     if (al) al.enabled = true;
                 }
+
+                if (_uiMode && stage.ShowCanvas != null)
+                {
+                    // ScreenSpaceOverlay is invisible to cam.Render — bind UI to broadcast cam.
+                    var canvas = stage.ShowCanvas.GetComponent<Canvas>();
+                    if (canvas != null && stage.BroadcastCam != null)
+                    {
+                        canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                        canvas.worldCamera = stage.BroadcastCam;
+                        canvas.planeDistance = 1.2f;
+                    }
+                    if (stage.RoomCodeText) stage.RoomCodeText.text = "Salle DEMO";
+                    if (stage.PhaseText) stage.PhaseText.text = "lobby";
+                    if (stage.HostLineText) stage.HostLineText.text = "Bienvenue sur le plateau !";
+                    if (stage.BrandText) stage.BrandText.text = KiagConfig.Brand;
+                }
             }
 
-            // Settle lighting / postFX
-            yield return new WaitForSeconds(0.6f);
+            // Settle lighting / postFX / TMP mesh
+            yield return new WaitForSeconds(0.7f);
             yield return new WaitForEndOfFrame();
+            Canvas.ForceUpdateCanvases();
+            yield return null;
 
             if (string.IsNullOrEmpty(_path))
             {
                 var dir = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-                _path = Path.Combine(dir, "clay-plate.png");
+                _path = Path.Combine(dir, _uiMode ? "host-ui-buttons.png" : "clay-plate.png");
             }
             else
             {
@@ -95,7 +119,7 @@ namespace Kiag
             Destroy(tex);
             rt.Release();
             Destroy(rt);
-            Debug.Log("[Kiag] Plate capture → " + _path + " (" + w + "x" + h + ")");
+            Debug.Log("[Kiag] " + (_uiMode ? "UI" : "Plate") + " capture → " + _path + " (" + w + "x" + h + ")");
 
             yield return null;
             QuitNow();

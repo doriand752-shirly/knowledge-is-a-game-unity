@@ -202,7 +202,8 @@ namespace Kiag
             tmp.text = text;
             tmp.fontSize = size;
             tmp.fontStyle = FontStyles.Bold;
-            tmp.color = color;
+            // Dark ink on cream badge — no outline washout under bloom.
+            KiagTmp.Bind(tmp, color, outline: false);
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.rectTransform.sizeDelta = new Vector2(140, 36);
             tmp.rectTransform.anchoredPosition = pos;

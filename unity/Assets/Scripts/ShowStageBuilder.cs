@@ -375,10 +375,10 @@ namespace Kiag
 
         void BuildCameras()
         {
-            // Wide TV plate: far enough that ±3.6 cast lineup + badges + Maxime are fully inside 16:9.
-            BroadcastCam = MakeCam("CamBroadcast", new Vector3(0, 2.25f, -8.4f), true, new Vector3(0, 1.4f, 1.8f), focus: 8.5f);
+            // Extra-wide plate: clear margin past side benches (cast never near frame edge).
+            BroadcastCam = MakeCam("CamBroadcast", new Vector3(0, 2.7f, -11.2f), true, new Vector3(0, 1.3f, 2.2f), focus: 11.0f);
             DoorCam = MakeCam("CamDoors", new Vector3(0, 2.35f, 1.6f), false, new Vector3(0, 1.9f, 5.5f), focus: 4.4f);
-            PadCam = MakeCam("CamPads", new Vector3(0, 2.1f, -6.0f), false, new Vector3(0, 1.35f, 0.9f), focus: 6.2f);
+            PadCam = MakeCam("CamPads", new Vector3(0, 2.35f, -7.8f), false, new Vector3(0, 1.25f, 1.0f), focus: 8.0f);
             PyramidCam = MakeCam("CamPyramid", new Vector3(0, 2.4f, -1.4f), false, new Vector3(0, 1.9f, 4.0f), focus: 5.2f);
             gameObject.AddComponent<CameraDirector>().Bind(BroadcastCam, DoorCam, PadCam, PyramidCam);
         }
@@ -392,7 +392,7 @@ namespace Kiag
             var cam = go.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = ClayPalette.BackdropSky * 0.55f;
-            cam.fieldOfView = 52; // 16:9 plate — keep all 4 side cast inside frame
+            cam.fieldOfView = 62; // wide plate — side benches fully inside with margin
             cam.allowHDR = true;
             cam.enabled = enabled;
             // Tag for Camera.main / plate capture
@@ -443,7 +443,10 @@ namespace Kiag
             ModeDecades = UiButton(panel.transform, "Décades", new Vector2(140, 110));
             ModeRapide = UiButton(panel.transform, "Rapide", new Vector2(280, 110));
             StartButton = UiButton(panel.transform, "Démarrer", new Vector2(0, 50));
+            // Start = solid red pad with white outlined label (high contrast).
             StartButton.GetComponent<Image>().color = ClayPalette.PadA;
+            var startLabel = StartButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (startLabel != null) KiagTmp.Bind(startLabel, Color.white, outline: true);
 
             var togGo = new GameObject("PPToggle");
             togGo.transform.SetParent(panel.transform, false);
@@ -453,6 +456,7 @@ namespace Kiag
             PowerPlaysToggle = togGo.AddComponent<Toggle>();
             PowerPlaysToggle.isOn = true;
             var togLabel = UiText(togGo.transform, "PPLabel", "Power Plays", 18, TextAnchor.MiddleLeft, Vector2.zero);
+            KiagTmp.Bind(togLabel, ClayPalette.ClayWhite, outline: true);
             togLabel.rectTransform.sizeDelta = new Vector2(160, 28);
         }
 
@@ -464,7 +468,8 @@ namespace Kiag
             tmp.text = text;
             tmp.fontSize = size;
             tmp.fontStyle = FontStyles.Bold;
-            tmp.color = Color.white;
+            // High-contrast cream ink + black outline — readable on dark teal / bright floor / red Start.
+            KiagTmp.Bind(tmp, ClayPalette.ClayWhite, outline: true);
             tmp.alignment = TextAlignmentOptions.Center;
             var rt = tmp.rectTransform;
             rt.sizeDelta = new Vector2(900, 60);
@@ -501,12 +506,19 @@ namespace Kiag
             var go = new GameObject("Btn_" + label);
             go.transform.SetParent(parent, false);
             var img = go.AddComponent<Image>();
-            img.color = ClayPalette.BackWall;
+            // Cream face + dark ink label (same readability fix as early TMP outage).
+            img.color = ClayPalette.ClayWhite;
             var btn = go.AddComponent<Button>();
+            var colors = btn.colors;
+            colors.normalColor = ClayPalette.ClayWhite;
+            colors.highlightedColor = Color.Lerp(ClayPalette.ClayWhite, Color.white, 0.35f);
+            colors.pressedColor = Color.Lerp(ClayPalette.ClayWhite, ClayPalette.BackWall, 0.15f);
+            btn.colors = colors;
             var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(120, 40);
+            rt.sizeDelta = new Vector2(128, 44);
             rt.anchoredPosition = pos;
-            var t = UiText(go.transform, "Label", label, 16, TextAnchor.MiddleCenter, Vector2.zero);
+            var t = UiText(go.transform, "Label", label, 18, TextAnchor.MiddleCenter, Vector2.zero);
+            KiagTmp.Bind(t, ClayPalette.BadgeInk, outline: false);
             t.rectTransform.anchorMin = Vector2.zero;
             t.rectTransform.anchorMax = Vector2.one;
             t.rectTransform.offsetMin = Vector2.zero;
@@ -536,7 +548,7 @@ namespace Kiag
             tmp.text = text;
             tmp.fontSize = 4;
             tmp.alignment = TextAlignmentOptions.Center;
-            tmp.color = Color.white;
+            KiagTmp.Bind(tmp, ClayPalette.ClayWhite, outline: true);
             tmp.rectTransform.sizeDelta = new Vector2(3, 1);
             return tmp;
         }
