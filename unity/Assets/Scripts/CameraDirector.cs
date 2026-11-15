@@ -13,6 +13,8 @@ namespace Kiag
         float _shake;
         Vector3 _basePos;
         bool _baseSet;
+        /// <summary>Soft Y bob only outside lobby (keeps opening plate readable).</summary>
+        bool _allowBob;
 
         public void Bind(Camera broadcast, Camera door, Camera pad, Camera pyramid)
         {
@@ -21,10 +23,13 @@ namespace Kiag
             _pad = pad;
             _pyramid = pyramid;
             Cut("broadcast");
+            _allowBob = false;
         }
 
         public void CutForPhase(string phase)
         {
+            // Gate perpetual bob in lobby so the denser set + Maxime stay locked on first frame.
+            _allowBob = phase != null && phase != "lobby" && phase != "countdown";
             switch (phase)
             {
                 case "theme_vote":
@@ -82,7 +87,8 @@ namespace Kiag
                 _shake -= Time.deltaTime;
                 pos += Random.insideUnitSphere * 0.04f;
             }
-            pos.y += Mathf.Sin(Time.time * 1.3f) * 0.03f;
+            if (_allowBob)
+                pos.y += Mathf.Sin(Time.time * 1.3f) * 0.03f;
             active.transform.position = pos;
         }
 

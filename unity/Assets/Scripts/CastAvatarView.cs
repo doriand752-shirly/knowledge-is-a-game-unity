@@ -38,33 +38,71 @@ namespace Kiag
             _body = GameObject.CreatePrimitive(PrimitiveType.Capsule).transform;
             _body.name = "Body";
             _body.SetParent(transform, false);
-            _body.localPosition = new Vector3(0, 0.9f, 0);
-            _body.localScale = new Vector3(0.7f, 0.75f, 0.55f);
+            _body.localPosition = new Vector3(0, 0.95f, 0);
+            _body.localScale = new Vector3(0.78f, 0.82f, 0.6f);
             _bodyRend = _body.GetComponent<Renderer>();
             _bodyRend.sharedMaterial = ClayPalette.MakeClayMat(color);
             DestroyCollider(_body.gameObject);
 
+            var belt = GameObject.CreatePrimitive(PrimitiveType.Cube).transform;
+            belt.name = "Belt";
+            belt.SetParent(transform, false);
+            belt.localPosition = new Vector3(0, 0.55f, 0);
+            belt.localScale = new Vector3(0.75f, 0.12f, 0.55f);
+            belt.GetComponent<Renderer>().sharedMaterial = ClayPalette.MakeClayMat(Color.Lerp(color, Color.black, 0.35f));
+            DestroyCollider(belt.gameObject);
+
             _head = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
             _head.name = "Head";
             _head.SetParent(transform, false);
-            _head.localPosition = new Vector3(0, 1.85f, 0);
-            _head.localScale = Vector3.one * 0.7f;
+            _head.localPosition = new Vector3(0, 1.95f, 0);
+            _head.localScale = Vector3.one * 0.75f;
             _headRend = _head.GetComponent<Renderer>();
             _headRend.sharedMaterial = ClayPalette.MakeClayMat(Color.Lerp(color, Color.white, 0.35f));
             DestroyCollider(_head.gameObject);
+
+            var eyeL = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
+            eyeL.name = "EyeL";
+            eyeL.SetParent(transform, false);
+            eyeL.localPosition = new Vector3(-0.16f, 2.02f, -0.3f);
+            eyeL.localScale = Vector3.one * 0.12f;
+            eyeL.GetComponent<Renderer>().sharedMaterial = ClayPalette.MakeClayMat(Color.white);
+            DestroyCollider(eyeL.gameObject);
+            var eyeR = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
+            eyeR.name = "EyeR";
+            eyeR.SetParent(transform, false);
+            eyeR.localPosition = new Vector3(0.16f, 2.02f, -0.3f);
+            eyeR.localScale = Vector3.one * 0.12f;
+            eyeR.GetComponent<Renderer>().sharedMaterial = ClayPalette.MakeClayMat(Color.white);
+            DestroyCollider(eyeR.gameObject);
 
             // Soft hat / silhouette accent per cast
             var accent = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform;
             accent.name = "Accent";
             accent.SetParent(transform, false);
-            accent.localPosition = new Vector3(0, 2.2f, 0);
-            accent.localScale = new Vector3(0.55f, 0.25f, 0.55f);
+            accent.localPosition = new Vector3(0, 2.35f, 0);
+            accent.localScale = new Vector3(0.6f, 0.28f, 0.6f);
             accent.GetComponent<Renderer>().sharedMaterial = ClayPalette.MakeClayMat(Color.Lerp(color, Color.black, 0.25f));
             DestroyCollider(accent.gameObject);
 
+            var armL = GameObject.CreatePrimitive(PrimitiveType.Capsule).transform;
+            armL.name = "ArmL";
+            armL.SetParent(transform, false);
+            armL.localPosition = new Vector3(-0.55f, 1.0f, 0);
+            armL.localScale = new Vector3(0.22f, 0.4f, 0.22f);
+            armL.GetComponent<Renderer>().sharedMaterial = ClayPalette.MakeClayMat(color);
+            DestroyCollider(armL.gameObject);
+            var armR = GameObject.CreatePrimitive(PrimitiveType.Capsule).transform;
+            armR.name = "ArmR";
+            armR.SetParent(transform, false);
+            armR.localPosition = new Vector3(0.55f, 1.0f, 0);
+            armR.localScale = new Vector3(0.22f, 0.4f, 0.22f);
+            armR.GetComponent<Renderer>().sharedMaterial = ClayPalette.MakeClayMat(color);
+            DestroyCollider(armR.gameObject);
+
             var nameGo = new GameObject("Name");
             nameGo.transform.SetParent(transform, false);
-            nameGo.transform.localPosition = new Vector3(0, 2.55f, 0);
+            nameGo.transform.localPosition = new Vector3(0, 2.75f, 0);
             _name = nameGo.AddComponent<TextMeshPro>();
             _name.fontSize = 3.2f;
             _name.alignment = TextAlignmentOptions.Center;
