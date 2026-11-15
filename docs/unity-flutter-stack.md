@@ -44,7 +44,8 @@ APK: `mobile\build\app\outputs\flutter-apk\app-release.apk`
 
 ### 3. Flutter iOS → TestFlight (macOS + Xcode; Appy Geek ASC path)
 
-**Cannot compile IPA on This Windows PC.** Use Dimitri’s Mac (self-hosted `darwin` worker) or any Mac with Xcode.
+**Cannot compile IPA on This Windows PC.** Use Dimitri’s Mac (self-hosted `darwin` worker) or any Mac with Xcode.  
+Local `Task` subagents cannot be pinned to another My Machines worker (two attempts stayed on Windows). Start a **new Cloud Agent** with environment = **MacBook Air de Dimitri** + repo `knowledge-is-a-game-unity`, or run `OneDrive/kiag-asc-handoff/RUN_ON_MAC.sh` on that Mac.
 
 Bundle ID: `com.knowledgeisagame.kiagPlayer` (ASC **bundle** already registered).  
 **One-time ASC UI:** create App Store Connect app “Knowledge is a Game” with that bundle — API key can list/upload but **cannot CREATE apps** (403).
