@@ -1,33 +1,45 @@
 # iOS TestFlight — Knowledge is a Game (player)
 
-**This PC is Windows** — the IPA cannot be compiled here. Use a Mac with Xcode (15+) and an Apple Developer account.
+**Preferred path:** GitHub Actions `macos-latest` workflow (This PC only — no Dimitri Mac).
 
-## One-time App Store Connect
+Bundle: `com.knowledgeisagame.kiagPlayer` · ASC app id `6835082408` · Team `2QKC854C2J`
 
-1. Create app **Knowledge is a Game** with bundle id `com.knowledgeisagame.kiagPlayer`.
-2. Enable **TestFlight** internal testing; add testers.
-3. Note your **Team ID** (developer.apple.com → Membership).
+## GitHub Actions (recommended)
 
-## Build & upload (Mac)
+Workflow: `.github/workflows/ios-testflight.yml`  
+Lane: `mobile/ios/fastlane` → `ci_testflight`
 
-```bash
-export APPLE_TEAM_ID=XXXXXXXXXX
-export KIAG_API=http://85.17.145.134:2567
-cd mobile
-chmod +x scripts/build_ios_testflight.sh
-./scripts/build_ios_testflight.sh
+Secrets (set from This PC, never commit):
+
+| Secret | Source |
+|--------|--------|
+| `ASC_KEY_ID` | `mobile/ios/asc/.env.asc` |
+| `ASC_ISSUER_ID` | same |
+| `ASC_KEY_P8` | contents of `mobile/ios/asc/AuthKey_*.p8` (EAS-synced) |
+| `APPLE_TEAM_ID` | `2QKC854C2J` |
+| `ASC_APP_ID` | `6835082408` |
+
+```bat
+cd c:\Users\doria\Knowledge-is-a-Game-Unity
+gh workflow run "iOS TestFlight" --ref main -f upload=true -f kiag_api=http://85.17.145.134:2567
+gh run watch
 ```
 
-Or manually:
+## One-time App Store Connect (Dorian)
+
+1. App **Knowledge is a Game** already exists for this bundle.
+2. After first upload processes: TestFlight → Internal Testing → add yourself / testers.
+3. First external group needs Beta App Review (optional later).
+
+## Local Mac fallback (optional)
 
 ```bash
 cd mobile
 flutter pub get
-flutter build ipa --release --dart-define=KIAG_API=http://85.17.145.134:2567 \
-  --export-options-plist=ios/ExportOptions.plist
+cd ios && bundle install && bundle exec fastlane beta
 ```
 
-Then upload the IPA via Xcode Organizer, Transporter, or `xcrun altool`.
+Or: `flutter build ipa` then `node ios/asc/upload-ipa.mjs build/ios/ipa/*.ipa`
 
 ## Permissions already in Info.plist
 

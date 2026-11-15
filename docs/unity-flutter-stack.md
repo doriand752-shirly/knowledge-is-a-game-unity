@@ -42,13 +42,11 @@ flutter build apk --release --dart-define=KIAG_API=http://85.17.145.134:2567
 
 APK: `mobile\build\app\outputs\flutter-apk\app-release.apk`
 
-### 3. Flutter iOS → TestFlight (macOS + Xcode; Appy Geek ASC path)
+### 3. Flutter iOS → TestFlight (GitHub Actions — This PC only)
 
-**Cannot compile IPA on This Windows PC.** Use Dimitri’s Mac (self-hosted `darwin` worker) or any Mac with Xcode.  
-Local `Task` subagents cannot be pinned to another My Machines worker (two attempts stayed on Windows). Start a **new Cloud Agent** with environment = **MacBook Air de Dimitri** + repo `knowledge-is-a-game-unity`, or run `OneDrive/kiag-asc-handoff/RUN_ON_MAC.sh` on that Mac.
+**Do not use Dimitri’s Mac.** IPA builds on `macos-latest` via `.github/workflows/ios-testflight.yml` (Fastlane `ci_testflight` + Appy Geek ASC API key secrets).
 
-Bundle ID: `com.knowledgeisagame.kiagPlayer` (ASC **bundle** already registered).  
-**One-time ASC UI:** create App Store Connect app “Knowledge is a Game” with that bundle — API key can list/upload but **cannot CREATE apps** (403).
+Bundle ID: `com.knowledgeisagame.kiagPlayer` · ASC app `6835082408` · Team `2QKC854C2J`.
 
 #### Credentials (same as Appy Geek — never commit / never paste into chat)
 
@@ -60,7 +58,6 @@ Bundle ID: `com.knowledgeisagame.kiagPlayer` (ASC **bundle** already registered)
 | Expo session | `%USERPROFILE%\.expo\state.json` |
 | KiAG synced env (gitignored) | `mobile\ios\asc\.env.asc` |
 | KiAG synced EAS key (gitignored) | `mobile\ios\asc\AuthKey_<KEYID>.p8` |
-| Mac handoff pack | `C:\Users\doria\kiag-asc-handoff\` and `C:\Users\doria\OneDrive\kiag-asc-handoff\` |
 
 Sync on Windows (writes gitignored files, prints lengths only):
 
@@ -68,19 +65,15 @@ Sync on Windows (writes gitignored files, prints lengths only):
 node mobile\ios\asc\sync-asc-from-appy-geek.mjs
 ```
 
-#### Mac build + upload
+Push secrets + run workflow (from This PC):
 
-```bash
-git clone https://github.com/doriand752-shirly/knowledge-is-a-game-unity
-# Copy OneDrive/kiag-asc-handoff → mobile/ios/asc/  (or re-run sync if Expo login exists)
-cd mobile
-flutter pub get
-flutter build ipa --release --dart-define=KIAG_API=http://85.17.145.134:2567
-node ios/asc/upload-ipa.mjs build/ios/ipa/*.ipa
-# or: cd ios && bundle exec fastlane upload_testflight
+```bat
+cd c:\Users\doria\Knowledge-is-a-Game-Unity
+gh workflow run "iOS TestFlight" -f upload=true -f kiag_api=http://85.17.145.134:2567
+gh run watch
 ```
 
-Fastlane: `mobile/ios/fastlane/` (Appfile + Fastfile). Details: `internal/ios-testflight-shipped.md`.
+Details: `mobile/scripts/README-ios-testflight.md`.
 
 ### 4. Unity 3D Windows host (This PC)
 

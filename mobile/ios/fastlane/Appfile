@@ -2,4 +2,4 @@
 # Secrets live outside git: see ../asc/CREDENTIALS_PATHS.md and ../asc/.env.asc (gitignored)
 
 app_identifier("com.knowledgeisagame.kiagPlayer")
-# team_id filled at runtime from ASC / Xcode automatic signing
+team_id(ENV["APPLE_TEAM_ID"] || "2QKC854C2J")

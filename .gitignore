@@ -18,6 +18,8 @@ mobile/ios/asc/.env.asc
 mobile/ios/asc/*.p8
 mobile/ios/asc/private_keys/
 mobile/ios/asc/api_key.json
+mobile/ios/ExportOptions.ci.plist
+mobile/ios/vendor/
 mobile/build-apk.log
 
 # Unity
