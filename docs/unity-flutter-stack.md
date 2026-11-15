@@ -9,6 +9,7 @@
 | **Create room** | `POST /api/create-room` |
 | **Lookup room** | `GET /api/room/:code` |
 | **Monorepo** | `c:\Users\doria\Knowledge-is-a-Game-Unity` |
+| **GitHub** | https://github.com/doriand752-shirly/knowledge-is-a-game-unity |
 | **Web archive** | `c:\Users\doria\Knowledge-is-a-Game` |
 
 ## Architecture
@@ -41,37 +42,44 @@ flutter build apk --release --dart-define=KIAG_API=http://85.17.145.134:2567
 
 APK: `mobile\build\app\outputs\flutter-apk\app-release.apk`
 
-### 3. Flutter iOS → TestFlight (requires macOS + Xcode)
+### 3. Flutter iOS → TestFlight (macOS + Xcode; Appy Geek ASC path)
 
-**Cannot compile IPA on This Windows PC.** Use a Mac with Xcode 15+, CocoaPods, and an Apple Developer account.
+**Cannot compile IPA on This Windows PC.** Use Dimitri’s Mac (self-hosted `darwin` worker) or any Mac with Xcode.
 
-Bundle ID: `com.knowledgeisagame.kiagPlayer`  
-Display name: Knowledge is a Game  
-Permissions: camera (selfie + QR), photo library (optional selfie)
+Bundle ID: `com.knowledgeisagame.kiagPlayer` (ASC **bundle** already registered).  
+**One-time ASC UI:** create App Store Connect app “Knowledge is a Game” with that bundle — API key can list/upload but **cannot CREATE apps** (403).
 
-```bash
-# On macOS
-export APPLE_TEAM_ID=XXXXXXXXXX   # Membership → Team ID
-export KIAG_API=http://85.17.145.134:2567
-cd mobile
-chmod +x scripts/build_ios_testflight.sh
-./scripts/build_ios_testflight.sh
+#### Credentials (same as Appy Geek — never commit / never paste into chat)
+
+| What | Absolute path (Windows) |
+|------|-------------------------|
+| Appy Geek project | `C:\Users\doria\Appy Geek\` |
+| Appy Geek ASC scripts | `C:\Users\doria\Appy Geek\scripts\asc-*.mjs` |
+| Local AuthKey file | `C:\Users\doria\Appy Geek\AuthKey_D3336977R5.p8` |
+| Expo session | `%USERPROFILE%\.expo\state.json` |
+| KiAG synced env (gitignored) | `mobile\ios\asc\.env.asc` |
+| KiAG synced EAS key (gitignored) | `mobile\ios\asc\AuthKey_<KEYID>.p8` |
+| Mac handoff pack | `C:\Users\doria\kiag-asc-handoff\` and `C:\Users\doria\OneDrive\kiag-asc-handoff\` |
+
+Sync on Windows (writes gitignored files, prints lengths only):
+
+```bat
+node mobile\ios\asc\sync-asc-from-appy-geek.mjs
 ```
 
-Manual path:
+#### Mac build + upload
 
 ```bash
+git clone https://github.com/doriand752-shirly/knowledge-is-a-game-unity
+# Copy OneDrive/kiag-asc-handoff → mobile/ios/asc/  (or re-run sync if Expo login exists)
 cd mobile
 flutter pub get
-# Edit ios/ExportOptions.plist → teamID
-flutter build ipa --release --dart-define=KIAG_API=http://85.17.145.134:2567 \
-  --export-options-plist=ios/ExportOptions.plist
+flutter build ipa --release --dart-define=KIAG_API=http://85.17.145.134:2567
+node ios/asc/upload-ipa.mjs build/ios/ipa/*.ipa
+# or: cd ios && bundle exec fastlane upload_testflight
 ```
 
-Upload IPA via **Xcode Organizer → Distribute App → App Store Connect**, Transporter, or `xcrun altool`.  
-App Store Connect: create app with the bundle id above → TestFlight → internal/external testers.
-
-Details: `mobile/scripts/README-ios-testflight.md`
+Fastlane: `mobile/ios/fastlane/` (Appfile + Fastfile). Details: `internal/ios-testflight-shipped.md`.
 
 ### 4. Unity 3D Windows host (This PC)
 
