@@ -178,8 +178,8 @@ namespace Kiag
 
                 if (type == "snapshot" && host != null)
                     host.OnSnapshotMessage(ToPlain(payload));
-                else if (type == "toast" && host != null)
-                    host.OnToastMessage(ToPlain(payload));
+                else if ((type == "toast" || type == "error") && host != null)
+                    host.OnToastMessage(ToPlain(payload) ?? new { message = type });
             }
 
             // ROOM_STATE / ROOM_STATE_PATCH ignored — TV uses snapshot JSON.

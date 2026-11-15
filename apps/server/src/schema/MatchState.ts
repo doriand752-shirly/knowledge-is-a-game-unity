@@ -33,6 +33,8 @@ export class PlayerState extends Schema {
   @type("string") selfieDataUrl: string = "";
   /** Cast character id (ketchup, glitter, …) */
   @type("string") characterId: string = "";
+  /** Server-driven opponent (no phone client). */
+  @type("boolean") isBot: boolean = false;
 }
 
 export class QuestionPublic extends Schema {

@@ -87,6 +87,11 @@ namespace Kiag
             if (client == null) client = FindFirstObjectByType<ColyseusHostClient>();
             if (client != null && client.GetComponent<ColyseusSdkAdapter>() == null)
                 client.gameObject.AddComponent<ColyseusSdkAdapter>();
+            if (client != null)
+            {
+                client.ToastReceived -= OnServerToast;
+                client.ToastReceived += OnServerToast;
+            }
             StartCoroutine(Boot());
         }
 
@@ -127,15 +132,49 @@ namespace Kiag
                 if (hostLineText) hostLineText.text = "Connexion Colyseus en cours… réessayez dans 2s.";
                 return;
             }
+            var players = client.Snapshot?.playerCount ?? 0;
+            if (players < 1)
+            {
+                if (hostLineText) hostLineText.text = "Aucun joueur téléphone connecté — rejoins avec le code salle.";
+                return;
+            }
             client.StartMatch(_mode, powerPlaysToggle == null || powerPlaysToggle.isOn);
             if (hostLineText) hostLineText.text = "Démarrage du match…";
+        }
+
+        void OnEnable()
+        {
+            if (client == null) client = FindFirstObjectByType<ColyseusHostClient>();
+            if (client != null)
+            {
+                client.ToastReceived -= OnServerToast;
+                client.ToastReceived += OnServerToast;
+            }
+        }
+
+        void OnDisable()
+        {
+            if (client != null) client.ToastReceived -= OnServerToast;
+        }
+
+        void OnServerToast(string message)
+        {
+            if (!string.IsNullOrEmpty(message) && hostLineText)
+                hostLineText.text = message;
+            Debug.Log("[Kiag] toast/error: " + message);
         }
 
         public void ApplySnapshot(MatchSnapshot snap)
         {
             if (snap == null) return;
             if (hostLineText) hostLineText.text = snap.hostLine ?? "";
-            if (phaseText) phaseText.text = $"{snap.phase} · Q{snap.roundIndex + 1}/{snap.totalRounds}";
+            if (phaseText)
+            {
+                if (snap.phase == "lobby" || snap.phase == "countdown")
+                    phaseText.text = $"{snap.phase} · {snap.playerCount} joueur(s)";
+                else
+                    phaseText.text = $"{snap.phase} · Q{snap.roundIndex + 1}/{snap.totalRounds}";
+            }
             if (questionText)
             {
                 var showQ = snap.phase == "question" || snap.phase == "votes_show" || snap.phase == "reveal"

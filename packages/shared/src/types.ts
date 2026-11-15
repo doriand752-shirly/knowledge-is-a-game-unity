@@ -66,7 +66,8 @@ export interface ThemeOption {
 
 export const BRAND_NAME = "Knowledge is a Game";
 
-export const MIN_PLAYERS = 2;
+/** One phone is enough to start (TV host is not counted). */
+export const MIN_PLAYERS = 1;
 export const MAX_PLAYERS = 6;
 export const DEFAULT_ROUNDS = 9; // 9 MCQ (+ challenges + pyramid outside)
 /** Everyone answers in 10 seconds. */

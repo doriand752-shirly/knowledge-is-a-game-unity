@@ -142,6 +142,7 @@ export class MatchRoom extends Room<MatchState> {
         sessionId: id,
         name: p.name,
         isHost: p.isHost,
+        isBot: p.isBot,
         score: p.score,
         slot: p.slot,
         color: p.color,
@@ -286,8 +287,183 @@ export class MatchRoom extends Room<MatchState> {
     return n;
   }
 
+  private countHumanPlayers(): number {
+    let n = 0;
+    this.state.players.forEach((p) => {
+      if (!p.isHost && !p.isBot && p.connected) n++;
+    });
+    return n;
+  }
+
   private syncPlayerCount() {
     this.state.playerCount = this.countPlayers();
+  }
+
+  /** Ensure at least `minPlayers` non-host seats (humans + bots). */
+  private ensureBotOpponents(minPlayers = 2) {
+    const BOT_NAMES = ["Bot Max", "Bot Pixel", "Bot Neon", "Bot Clay"];
+    let guard = 0;
+    while (this.countPlayers() < minPlayers && this.countPlayers() < MAX_PLAYERS && guard++ < 6) {
+      const id = `bot-${Date.now().toString(36)}-${guard}`;
+      const bot = new PlayerState();
+      bot.sessionId = id;
+      bot.isHost = false;
+      bot.isBot = true;
+      bot.connected = true;
+      bot.name = BOT_NAMES[(this.countPlayers() + guard) % BOT_NAMES.length]!;
+      const slot = this.nextSlot();
+      bot.slot = slot;
+      const cast = CAST_CHARACTERS[slot % CAST_CHARACTERS.length]!;
+      bot.characterId = cast.id;
+      bot.color = cast.color;
+      bot.powerUpsJson = JSON.stringify(initialPowerUpCharges(this.decadesPool()));
+      this.state.players.set(id, bot);
+      this.state.playerOrder.push(id);
+    }
+    this.syncPlayerCount();
+    if (this.countPlayers() > this.countHumanPlayers()) {
+      this.broadcast("toast", {
+        message: `Bot adversaire en piste (${this.countPlayers()} joueurs)`,
+      });
+    }
+  }
+
+  private eachBot(fn: (p: PlayerState, id: string) => void) {
+    this.state.players.forEach((p, id) => {
+      if (p.isBot && !p.isHost) fn(p, id);
+    });
+  }
+
+  /** Schedule bot actions for the current phase (QCM / portes / challenges). */
+  private scheduleBotActions() {
+    const phase = this.state.phase;
+    const delay = 800 + Math.floor(Math.random() * 1200);
+    setTimeout(() => {
+      if (this.state.phase !== phase) return;
+      if (phase === "theme_vote") this.botsVoteTheme();
+      else if (phase === "question") this.botsAnswerQuestion();
+      else if (phase === "linking") this.botsFinishLinking();
+      else if (phase === "sorting") this.botsFinishSorting();
+      else if (phase === "chain_reaction") this.botsFinishChain();
+      else if (phase === "fill_blanks") this.botsFinishFill();
+      else if (phase === "odd_one_out") this.botsFinishOdd();
+      else if (phase === "spin_to_win") this.botsFinishSpin();
+      else if (phase === "pyramid") this.botsPyramidAnswer();
+    }, delay);
+  }
+
+  private botsVoteTheme() {
+    if (!this.themeOptions.length) return;
+    this.eachBot((pl) => {
+      if (pl.themeVote) return;
+      const pick = this.themeOptions[Math.floor(Math.random() * this.themeOptions.length)]!;
+      pl.themeVote = pick.id;
+    });
+    this.broadcastSnapshot();
+  }
+
+  private botsAnswerQuestion() {
+    const q = this.currentQuestion;
+    if (!q?.choices?.length) return;
+    const correctId = q.correctChoiceIds?.[0];
+    this.eachBot((pl, id) => {
+      if (pl.hasAnswered || pl.frozen) return;
+      // ~55% correct so a human can win
+      const right = Math.random() < 0.55 && correctId;
+      const choice = right
+        ? correctId!
+        : q.choices![Math.floor(Math.random() * q.choices!.length)]!.id;
+      this.onSubmitAnswer(id, pl, choice);
+    });
+  }
+
+  private botsFinishLinking() {
+    this.eachBot((pl, id) => {
+      if (pl.linkingDone) return;
+      this.onLinkingSubmit(id, pl, []);
+    });
+  }
+
+  private botsFinishSorting() {
+    if (!this.sorting) return;
+    this.eachBot((pl, id) => {
+      if (this.challengeDone.has(id)) return;
+      for (const item of this.sorting!.items) {
+        const side = Math.random() < 0.55 ? item.side : item.side === "L" ? "R" : "L";
+        this.onSortingSubmit(id, pl, item.id, side);
+      }
+    });
+  }
+
+  private botsFinishChain() {
+    this.eachBot((pl, id) => {
+      this.onChainSubmit(id, pl, []);
+    });
+  }
+
+  private botsFinishFill() {
+    this.eachBot((pl, id) => {
+      this.onFillSubmit(id, pl, {});
+    });
+  }
+
+  private botsFinishOdd() {
+    if (!this.oddPack?.items?.length) return;
+    this.eachBot((pl, id) => {
+      if (this.challengeDone.has(id)) return;
+      const item =
+        Math.random() < 0.55
+          ? this.oddPack!.items.find((i) => i.id === this.oddPack!.oddId) ??
+            this.oddPack!.items[0]!
+          : this.oddPack!.items[Math.floor(Math.random() * this.oddPack!.items.length)]!;
+      this.onOddSubmit(id, pl, item.id);
+    });
+  }
+
+  private botsFinishSpin() {
+    if (!this.spinPack?.options?.length) return;
+    this.eachBot((pl, id) => {
+      if (this.challengeDone.has(id)) return;
+      const opts = this.spinPack!.options;
+      const pick =
+        Math.random() < 0.55
+          ? this.spinPack!.correct
+          : opts[Math.floor(Math.random() * opts.length)]!;
+      this.onSpinSubmit(id, pl, pick);
+    });
+  }
+
+  private botsPyramidAnswer() {
+    const q = PYRAMID_QUESTIONS[this.pyramidQIndex % PYRAMID_QUESTIONS.length];
+    if (!q?.choices?.length) return;
+    this.eachBot((_pl, id) => {
+      const pl = this.state.players.get(id);
+      if (!pl || pl.pyramidStep >= PYRAMID_STEPS_TO_WIN) return;
+      const right = Math.random() < 0.5;
+      const pick = right
+        ? q.correctChoiceId
+        : q.choices[Math.floor(Math.random() * q.choices.length)]!.id;
+      this.onPyramidAnswer(id, pl, pick);
+      // Wrong guess → retry shortly so the pyramid can finish without a human.
+      if (pick !== q.correctChoiceId && this.state.phase === "pyramid") {
+        setTimeout(() => {
+          if (this.state.phase === "pyramid") this.botsPyramidAnswer();
+        }, 900 + Math.floor(Math.random() * 700));
+      }
+    });
+  }
+
+  private removeBots() {
+    const ids: string[] = [];
+    this.state.players.forEach((p, id) => {
+      if (p.isBot) ids.push(id);
+    });
+    for (const id of ids) {
+      this.state.players.delete(id);
+      const idx = this.state.playerOrder.indexOf(id);
+      if (idx >= 0) this.state.playerOrder.splice(idx, 1);
+    }
+    if (ids.length) this.syncPlayerCount();
   }
 
   private nextSlot(): number {
@@ -399,11 +575,15 @@ export class MatchRoom extends Room<MatchState> {
           client.send("error", { message: "Seul le présentateur peut démarrer" });
           return;
         }
-        if (this.countPlayers() < MIN_PLAYERS) {
-          client.send("error", { message: `Il faut au moins ${MIN_PLAYERS} joueurs` });
+        if (this.countHumanPlayers() < MIN_PLAYERS) {
+          client.send("error", {
+            message: `Il faut au moins ${MIN_PLAYERS} joueur téléphone`,
+          });
           return;
         }
         this.applyMatchOptions(msg.mode, msg.powerPlaysEnabled);
+        // Solo phone → fill with a bot opponent so the show is 1v1.
+        this.ensureBotOpponents(2);
         const mode = this.modeDef();
         this.state.roundIndex = 0;
         this.state.battleIndex = 0;
@@ -497,6 +677,7 @@ export class MatchRoom extends Room<MatchState> {
 
   private resetLobby() {
     this.clearPhaseTimer();
+    this.removeBots();
     this.state.phase = "lobby";
     this.setHostLine("lobby");
     this.state.roundIndex = 0;
@@ -618,6 +799,7 @@ export class MatchRoom extends Room<MatchState> {
     });
     this.broadcast("toast", { message: "Choisissez une porte de thème !" });
     this.schedule(THEME_VOTE_SEC * 1000, () => this.resolveThemeVote());
+    this.scheduleBotActions();
   }
 
   private resolveThemeVote() {
@@ -715,6 +897,7 @@ export class MatchRoom extends Room<MatchState> {
 
     this.questionStartedAt = Date.now();
     this.schedule(DEFAULT_QUESTION_TIME * 1000, () => this.beginVoteShow());
+    this.scheduleBotActions();
   }
 
   private onSubmitAnswer(sessionId: string, p: PlayerState, value: string) {
@@ -853,6 +1036,7 @@ export class MatchRoom extends Room<MatchState> {
     this.setHostLine("linking");
     this.broadcast("toast", { message: `Challenge : ${pack.title}` });
     this.schedule(pack.timeLimitSec * 1000, () => this.endLinking());
+    this.scheduleBotActions();
   }
 
   private onLinkingSubmit(
@@ -919,6 +1103,7 @@ export class MatchRoom extends Room<MatchState> {
     this.setHostLine("sorting");
     this.broadcast("toast", { message: `Challenge : ${pack.title}` });
     this.schedule(pack.timeLimitSec * 1000, () => this.endSorting());
+    this.scheduleBotActions();
   }
 
   private onSortingSubmit(
@@ -990,6 +1175,7 @@ export class MatchRoom extends Room<MatchState> {
     this.setHostLine("chain_reaction");
     this.broadcast("toast", { message: `Challenge : ${pack.title}` });
     this.schedule(pack.timeLimitSec * 1000, () => this.endGenericChallenge("Chaîne terminée !"));
+    this.scheduleBotActions();
   }
 
   private onChainSubmit(sessionId: string, p: PlayerState, answers: string[]) {
@@ -1042,6 +1228,7 @@ export class MatchRoom extends Room<MatchState> {
     this.setHostLine("fill_blanks");
     this.broadcast("toast", { message: `Challenge : ${pack.title}` });
     this.schedule(pack.timeLimitSec * 1000, () => this.endGenericChallenge("Trous remplis !"));
+    this.scheduleBotActions();
   }
 
   private onFillSubmit(sessionId: string, p: PlayerState, answers: Record<string, string>) {
@@ -1082,6 +1269,7 @@ export class MatchRoom extends Room<MatchState> {
     this.setHostLine("odd_one_out");
     this.broadcast("toast", { message: `Challenge : ${pack.title}` });
     this.schedule(pack.timeLimitSec * 1000, () => this.endGenericChallenge("Intrus révélé !"));
+    this.scheduleBotActions();
   }
 
   private onOddSubmit(sessionId: string, p: PlayerState, itemId: string) {
@@ -1126,6 +1314,7 @@ export class MatchRoom extends Room<MatchState> {
     this.setHostLine("spin_to_win");
     this.broadcast("toast", { message: `Challenge : ${pack.title}` });
     this.schedule(pack.timeLimitSec * 1000, () => this.endGenericChallenge("Spin terminé !"));
+    this.scheduleBotActions();
   }
 
   private onSpinSubmit(sessionId: string, p: PlayerState, value: string) {
@@ -1194,6 +1383,7 @@ export class MatchRoom extends Room<MatchState> {
     this.schedule(120_000, () => {
       /* safety */
     });
+    this.scheduleBotActions();
   }
 
   private onPyramidAnswer(sessionId: string, p: PlayerState, value: string) {
